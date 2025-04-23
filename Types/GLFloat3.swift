@@ -17,12 +17,20 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
     init(){
         self.x = 0; self.y = 0; self.z = 0
     }
-    init(x: CGFloat, y: CGFloat, z: CGFloat) {
-        self.x = x; self.y = y; self.z = z
+    init(x: any BinaryFloatingPoint, y: any BinaryFloatingPoint, z: any BinaryFloatingPoint) {
+        self.x = CGFloat(x); self.y = CGFloat(y); self.z = CGFloat(z)
     }
-    init(x: CGFloat) { self.x = x; self.y = 0; self.z = 0 }    
-    init(y: CGFloat) { self.x = 0; self.y = y; self.z = 0 }
-    init(z: CGFloat) { self.x = 0; self.y = 0; self.z = z }
+    init(x: any BinaryFloatingPoint) { self.x = CGFloat(x); self.y = 0; self.z = 0 }
+    init(y: any BinaryFloatingPoint) { self.x = 0; self.y = CGFloat(y); self.z = 0 }
+    init(z: any BinaryFloatingPoint) { self.x = 0; self.y = 0; self.z = CGFloat(z) }
+    // integer ctors
+    init(x: any BinaryInteger, y: any BinaryInteger, z: any BinaryInteger) {
+        self.x = CGFloat(x); self.y = CGFloat(y); self.z = CGFloat(z)
+    }
+    init(x: any BinaryInteger) { self.x = CGFloat(x); self.y = 0; self.z = 0 }
+    init(y: any BinaryInteger) { self.x = 0; self.y = CGFloat(y); self.z = 0 }
+    init(z: any BinaryInteger) { self.x = 0; self.y = 0; self.z = CGFloat(z) }
+    
     
     // === Functions ===
     static prefix func -(_ val: GLFloat3) -> GLFloat3 { return GLFloat3(x: -val.x, y: -val.y, z: -val.z) }
