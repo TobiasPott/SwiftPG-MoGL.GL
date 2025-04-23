@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct GLStateChange {
+    public static let gsc_ccw_poly = GLStateChange(.ccw, .GL_POLY)
+    public static let gsc_cw_poly = GLStateChange(.cw, .GL_POLY)
+    
+    
     let frontFace: GLWinding?
     let mode: GLMode?
     
