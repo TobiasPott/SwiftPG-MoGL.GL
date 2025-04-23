@@ -21,7 +21,7 @@ class Transform: Transformation, ObservableObject, Codable {
     var location: CGPoint { get { return _location } } 
     var x: Int { get { return Int(_location.x) } set { _location.x = CGFloat(newValue) } }
     var y: Int { get { return Int(_location.y) } set { _location.y = CGFloat(newValue) } }
-    var z: Int { get { return Int(_z) } set { _z = newValue } }
+    var z: Int { get { return Int(_z) } set { _z = (newValue) } }
     var a: Int { 
         get { return Int(_a) } 
         set { _a = MoGLMath.safeAngle(newValue, rangeMax: Transform.AnglePrecision, safeGuard: Transform.AnglePrecisionSafeFactor) }
@@ -84,7 +84,7 @@ class Transform: Transformation, ObservableObject, Codable {
         if let x = toX { self._location.x = CGFloat(x) }
         if let y = toY { self._location.y = CGFloat(y) }
         
-        if let z = toZ { self._z = z }
+        if let z = toZ { self._z = (z) }
         self.onChanged()
     }
     

@@ -44,6 +44,9 @@ class WorldProjection: TransformerStage, Projection {
     func distanceTo2D(_ location: CGPoint) -> CGFloat {
         return (MoGLMath.dist2f(location.x, location.y, CGFloat(x[0] + x[1]) / 2.0, CGFloat(y[0] + y[1]) / 2.0))
     }
+    func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
+        // ToDo: transfer from projectToView(CGPoint..)
+    }
     func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) {
         if let camera = self.camera {
             let cameraTfs = camera.transform

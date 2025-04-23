@@ -42,10 +42,15 @@ class IsometricProjection: TransformerStage, Projection {
     func distanceTo2D(_ location: CGPoint) -> CGFloat {
         return (MoGLMath.dist2f(location.x, location.y, CGFloat(x[0] + x[1]) / 2.0, CGFloat(y[0] + y[1]) / 2.0))
     }
+    
+    func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
+        // ToDo: transfer from projectToView(CGPoint..)
+    }
     func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) {
         if let camera = self.camera {
             let cameraTfs = camera.transform
             let cameraLoc = cameraTfs.location
+            let cameraZ = CGFloat(cameraTfs.z)
             
             //offset bottom 2 points by player
             let nP1 = (p1).rotate(cameraTfs.a, cameraLoc * -1, cosine, sine)
@@ -58,46 +63,32 @@ class IsometricProjection: TransformerStage, Projection {
             let y2: CGFloat = (((nP2.y) - cameraTfs.y) / resolution)
             
             //view X position 
-            x[0] = (x1)
-            x[1] = (x2)
-            x[2] = (x2)
-            x[3] = (x1)
-            
+            x = [x1, x2, x2, x1]
             //view Y position (depth)
             y[0] = (y1)
             y[1] = (y2)
-            y[2] = (y2) + Int(CGFloat(ze2.height) / CGFloat(isoUnit))
-            y[3] = (y1) + Int(CGFloat(ze1.height) / CGFloat(isoUnit))
+            y[2] = (y2) + (CGFloat(ze2.height) / CGFloat(isoUnit))
+            y[3] = (y1) + (CGFloat(ze1.height) / CGFloat(isoUnit))
             
             //view z position
-            z[0] = -(-ze1.min + CGFloat(cameraTfs.z))
-            z[1] = -(-ze2.min + CGFloat(cameraTfs.z))
-            z[2] = -(-ze2.max - CGFloat(cameraTfs.z))
-            z[3] = -(-ze1.max - CGFloat(cameraTfs.z)) 
+            z[0] = -(-ze1.min + cameraZ)
+            z[1] = -(-ze2.min + cameraZ)
+            z[2] = -(-ze2.max - cameraZ)
+            z[3] = -(-ze1.max - cameraZ) 
             
-            z[3] = (ze1.min - CGFloat(cameraTfs.z) + (y[3] / resolution)) 
-            z[2] = (ze2.min - CGFloat(cameraTfs.z) + (y[2] / resolution))
-            z[1] = (ze2.max - CGFloat(cameraTfs.z) + (y[1] / resolution))
-            z[0] = (ze1.max - CGFloat(cameraTfs.z) + (y[0] / resolution))
+            z[3] = (ze1.min - cameraZ + (y[3] / resolution)) 
+            z[2] = (ze2.min - cameraZ + (y[2] / resolution))
+            z[1] = (ze2.max - cameraZ + (y[1] / resolution))
+            z[0] = (ze1.max - cameraZ + (y[0] / resolution))
         }
     }
     
     func projectToScreen() -> Bool {
         if let camera = self.camera {
-            let w2 = (camera.w2)
-            let h2 = 0.0 // (camera.h2)
-            
             //screen X position 
-            x[0] = (x[0] + w2)
-            x[1] = (x[1] + w2)
-            x[2] = (x[2] + w2)
-            x[3] = (x[3] + w2)
-            
+            x += camera.w2
             //screen Y position
-            y[0] = (y[0] + h2)
-            y[1] = (y[1] + h2)
-            y[2] = (y[2] + h2)
-            y[3] = (y[3] + h2)
+            // y += camera.h2
         }
         
         return false
