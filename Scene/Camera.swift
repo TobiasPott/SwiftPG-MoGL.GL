@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum ProjectionMode {
-    case world, planar, isometric
+    case onePoint, planar, isometric
 }
 
 class Camera: ObservableObject {
@@ -11,11 +11,11 @@ class Camera: ObservableObject {
     @Published var nearClip: CGFloat = 0.1
     @Published var farClip: CGFloat = 512.0
     @Published var viewport: CGRect = CGRect(x: 0, y: 0, width: 320, height: 240 * 2.0)
-    @Published private var _projectionMode: ProjectionMode = .world
+    @Published private var _projectionMode: ProjectionMode = .onePoint
     @Published private var _projection: Projection
 
     private var isoProj: IsometricProjection = IsometricProjection(1, 1)
-    private var worldProj: WorldProjection = WorldProjection(64)
+    private var onePointProj: OnePointProjection = OnePointProjection(64)
     private var planarProj: PlanarProjection = PlanarProjection(1)
     
     
@@ -30,7 +30,7 @@ class Camera: ObservableObject {
     
     // === Ctors ===
     init() {
-        _projection = worldProj
+        _projection = onePointProj
         //        _projection = isoProj
         _projection.setCamera(self)
         transform.move(0, -100, 0)
@@ -51,7 +51,7 @@ class Camera: ObservableObject {
     func setProjection(_ newType: ProjectionMode) {
         self._projectionMode = newType
         switch _projectionMode {
-        case .world: _projection = worldProj; break;
+        case .onePoint: _projection = onePointProj; break;
         case .planar: _projection = planarProj; break;
         case .isometric: _projection = isoProj; break;
         }

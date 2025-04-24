@@ -61,7 +61,8 @@ class Transform: Transformation, ObservableObject, Codable {
     }
     
     // === Functions === 
-    func moveRelativeBy(_ deltaX: Int = 0, _ deltaY: Int = 0, _ deltaZ: Int = 0) {
+    func moveRelativeBy(_ deltaXY: CGPoint) { self.moveRelativeBy(deltaXY.x, deltaXY.y, 0) }
+    func moveRelativeBy(_ deltaX: CGFloat = 0, _ deltaY: CGFloat = 0, _ deltaZ: CGFloat = 0) {
         if deltaX != 0 { 
             self._location.x = self._location.x + MoGLMath.sin(self.a + 90) * deltaX
             self._location.y = self._location.y + MoGLMath.cos(self.a + 90) * deltaX
@@ -70,15 +71,21 @@ class Transform: Transformation, ObservableObject, Codable {
             self._location.x = self._location.x + MoGLMath.sin(self.a) * deltaY
             self._location.y = self._location.y + MoGLMath.cos(self.a) * deltaY 
         }
-        if deltaZ != 0 { self._z = self._z + deltaZ }
+        if deltaZ != 0 { self._z = self._z + Int(deltaZ) }
         self.onChanged()
     }
-    func moveBy(_ deltaX: Int = 0, _ deltaY: Int = 0, _ deltaZ: Int = 0) {
+    func moveRelativeBy(_ deltaX: Int = 0, _ deltaY: Int = 0, _ deltaZ: Int = 0) {
+        self.moveRelativeBy(CGFloat(deltaX), CGFloat(deltaY), CGFloat(deltaZ))
+    }
+    func moveBy(_ deltaX: CGFloat = 0, _ deltaY: CGFloat = 0, _ deltaZ: CGFloat = 0) {
         if deltaX != 0 { self._location.x = self._location.x + deltaX }
         if deltaY != 0 { self._location.y = self._location.y + deltaY }
         
-        if deltaZ != 0 { self._z = self._z + deltaZ }
+        if deltaZ != 0 { self._z = self._z + Int(deltaZ) }
         self.onChanged()
+    }
+    func moveBy(_ deltaX: Int = 0, _ deltaY: Int = 0, _ deltaZ: Int = 0) {
+        self.moveBy(CGFloat(deltaX), CGFloat(deltaY), CGFloat(deltaZ))
     }
     func move(_ toX: Int? = nil, _ toY: Int? = nil, _ toZ: Int? = nil) {
         if let x = toX { self._location.x = CGFloat(x) }
@@ -101,9 +108,12 @@ class Transform: Transformation, ObservableObject, Codable {
         self._a = toA 
         self.onChanged()
     }
-    func rotateBy(_ deltaA: Int) { 
-        if deltaA != 0 { self._a = MoGLMath.safeAngle(_a + deltaA) } 
+    func rotateBy(_ deltaA: CGFloat) { 
+        if deltaA != 0 { self._a = MoGLMath.safeAngle(_a + Int(deltaA)) } 
         self.onChanged()    
+    }
+    func rotateBy(_ deltaA: Int) { 
+        self.rotateBy(CGFloat(deltaA))
     }
     
     // set/alter all transform members
