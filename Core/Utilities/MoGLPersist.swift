@@ -6,9 +6,9 @@ struct MoGLPersist {
     // ToDo: need a function to clear all stored user defaults (just to cleanup)
     static func load(_ tfs: Transform, _ prefix: String = "transform") {
         let ud = UserDefaults.standard
-        tfs.x = ud.integer(forKey: prefix + ".location.x")
-        tfs.y = ud.integer(forKey: prefix + ".location.y")
-        tfs.z = ud.integer(forKey: prefix + ".z")
+        tfs.x = CGFloat(ud.float(forKey: prefix + ".location.x"))
+        tfs.y = CGFloat(ud.float(forKey: prefix + ".location.y"))
+        tfs.z = CGFloat(ud.float(forKey: prefix + ".z"))
         tfs.a = ud.integer(forKey: prefix + ".a")
         tfs.t = ud.integer(forKey: prefix + ".t")
         tfs.scale = GLFloat3.decodeFromJson(ud.object(forKey: prefix + ".scale") as! Data)

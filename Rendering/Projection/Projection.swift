@@ -8,7 +8,9 @@ protocol Projection {
     var winding: GLWinding { get }
     
     // === Functions ===
-    func get2D(_ index: Int) -> CGPoint
+    func getToScreen(_ index: Int) -> CGPoint
+    func getToView(_ index: Int) -> GLFloat3
+    // ToDo: change get/setCamera to get/setViewTarget
     func getCamera() -> Camera?
     func setCamera(_ newCamera: Camera?) 
     
@@ -19,13 +21,16 @@ protocol Projection {
     
     // helper/analysis functions
     // ToDo: convert distanceTo to 3D distance (may be XY planar distance & Z distance, might also just be a 3D vector
-    func distanceTo2D(_ location: CGPoint) -> CGFloat
-//    func distanceTo3D(_ location: GLFloat3) -> CGPoint
+    func distanceTo3D(_ location: GLFloat3) -> CGFloat
     
     // clipping functions
     func clipNear() -> Bool
+    func clipFar() -> Bool
     
     // culling functions
     func cull(_ winding: GLWinding) -> Bool
-    
+    func cullNear() -> Bool
+    func cullFar() -> Bool
 }
+
+

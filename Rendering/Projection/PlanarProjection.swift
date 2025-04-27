@@ -1,10 +1,10 @@
 import SwiftUI
 
 // projects two vertical edges onto x/y plane
-class PlanarProjection: TransformerStage, Projection {
+class PlanarProjection: TransformerStage, Projection, Culling {
     // === Members ===
     // === Properties ===
-    var winding: GLWinding { get { return (x[1] > x[0]) ? .ccw : .cw } }
+    var winding: GLWinding { get { return (toScreen[1].x > toScreen[0].x) ? .ccw : .cw } }
     
     // === Ctors ===
     init(_ newResolution: CGFloat) {
@@ -13,35 +13,25 @@ class PlanarProjection: TransformerStage, Projection {
     }
     
     // === Functions ===
-    func cull(_ winding: GLWinding = GLWinding.ccw) -> Bool {
-        // ToDo: check culling in planar
-        return cullNear() || cullFar()
-    }
-    
-    private func cullNear() -> Bool {
+    func cullNear() -> Bool {
         if let camera = self.camera {
-            return z.less(camera.nearClip)
+            return toView.compactMap { i in i.z }.less(camera.nearClip)
         }
         return false
     }
-    private func cullFar() -> Bool {
+    func cullFar() -> Bool {
         if let camera = self.camera {
-            return z.greater(camera.farClip)
+            return toView.compactMap { i in i.z }.greater(camera.farClip)
         }
         return false
     }
     
-    func clipNear() -> Bool {        
-        //        if let camera = self.camera {
-        //            if z[0] < camera.nearClip && z[1] < camera.nearClip 
-        //                && z[2] < camera.nearClip && z[3] < camera.nearClip { 
-        //                return true 
-        //            }
-        //        }
-        return false
-    }
-    func distanceTo2D(_ location: CGPoint) -> CGFloat {
-        return (MoGLMath.dist2f(location.x, location.y, CGFloat(x[0] + x[1]) / 2.0, CGFloat(y[0] + y[1]) / 2.0))
+    func clipNear() -> Bool { return false }
+    func clipFar() -> Bool { return false }
+    
+    func distanceTo3D(_ location: GLFloat3) -> CGFloat {
+        let locViewMiddle = (toView[0] + toView[1]) / 2.0
+        return (location - locViewMiddle).magnitude
     }
     
     func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
@@ -64,24 +54,29 @@ class PlanarProjection: TransformerStage, Projection {
             let y2: CGFloat = (((nP2.y) - cameraTfs.y) / resolution)
             
             //view X position 
-            x = [x1, x2, x2, x1]            
+            let x = [x1, x2, x2, x1]            
             //view Y position (depth)
-            y = [y1, y2, y2, y1]
+            let y = [y1, y2, y2, y1]
             
+            var z: [CGFloat] = [0.0, 0.0, 0.0, 0.0]
             //view z position
             z[0] = cameraZ - ze1.min
             z[1] = cameraZ - ze2.min
             z[2] = cameraZ - ze2.max
             z[3] = cameraZ - ze1.max
+            
+            self.toView[0] = .init(x[0], y[0], z[0])
+            self.toView[1] = .init(x[1], y[1], z[1])
+            self.toView[2] = .init(x[2], y[2], z[2])
+            self.toView[3] = .init(x[3], y[3], z[3])
         }
     }
     
     func projectToScreen() -> Bool {
-        if let camera = self.camera {    
-            //screen X position 
-            x += camera.w2
-            //screen Y position
-            y += camera.h2
+        if let camera = self.camera {
+            for i in 0..<toView.count {
+                toScreen[i] = toView[i].xy + GLFloat2(camera.w2, camera.h2)
+            }
         }
         
         return false

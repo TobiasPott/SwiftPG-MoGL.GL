@@ -3,25 +3,26 @@ import SwiftUI
 struct FixedTransform: Transformation, Codable {
     // === Members ===
     let _location: CGPoint 
-    let _z, _a, _t: Int
+    let _z: CGFloat
+    let _a, _t: Int
     let _scale: GLFloat3
     let _pivot: GLFloat3? 
     
     // === Properties === 
     var location: CGPoint { get { return _location } } 
-    var x: Int { get { return Int(_location.x) } }
-    var y: Int { get { return Int(_location.y) } }
-    var z: Int { get { return Int(_z) } }
+    var x: CGFloat { get { return (_location.x) } }
+    var y: CGFloat { get { return (_location.y) } }
+    var z: CGFloat { get { return (_z) } }
     var a: Int { get { return Int(_a) } }
     var t: Int { get { return _t } }
     var scale: GLFloat3 { get { return _scale } }
     var pivot: GLFloat3 { 
-        get { return _pivot ?? GLFloat3(x: location.x, y: location.y, z: CGFloat(z)) } 
+        get { return _pivot ?? .init(location.x, location.y, z) } 
     }
     var useCustomPivot: Bool { return _pivot != nil }
     
     // === Ctors ===
-    init(_location: CGPoint, _z: Int, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?) {
+    init(_location: CGPoint, _z: CGFloat, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?) {
         self._location = _location; self._z = _z; self._a = _a; self._t = _t
         self._scale = _scale; self._pivot = _pivot
     }

@@ -4,7 +4,21 @@ enum ProjectionMode {
     case onePoint, planar, isometric
 }
 
-class Camera: ObservableObject {
+protocol ViewTarget {
+    var transform: Transform { get }
+    var fov: CGFloat { get }
+    var nearClip: CGFloat { get }
+    var farClip: CGFloat { get }
+    var viewport: CGRect { get }
+}
+
+extension ViewTarget {
+    var aspect: CGFloat { get { return viewport.width / viewport.height } }
+    var w2: CGFloat { get { return (viewport.width / 2) } }
+    var h2: CGFloat { get { return (viewport.height / 2) } }
+}
+
+class Camera: ObservableObject, ViewTarget {
     // === Members ===
     @Published var transform: Transform = Transform() 
     @Published var fov: CGFloat = 200.0
@@ -14,7 +28,7 @@ class Camera: ObservableObject {
     @Published private var _projectionMode: ProjectionMode = .onePoint
     @Published private var _projection: Projection
 
-    private var isoProj: IsometricProjection = IsometricProjection(1, 1)
+    private var isoProj: IsoProjection = IsoProjection(1)
     private var onePointProj: OnePointProjection = OnePointProjection(64)
     private var planarProj: PlanarProjection = PlanarProjection(1)
     

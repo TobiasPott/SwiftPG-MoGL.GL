@@ -2,45 +2,37 @@ import SwiftUI
 
 //https://gamedev.stackexchange.com/questions/159434/how-to-convert-3d-coordinates-to-2d-isometric-coordinates
 // projects zwo vertical edges onto x/y plane
-class IsometricProjection: TransformerStage, Projection {
+class IsoProjection: TransformerStage, Projection, Culling {
+    private static let defaultIsoScale: CGFloat = 1.75
+    
     // === Members ===
-    private var isoUnit: Int // cannot be zero (causes division by zero)
+    private var isoScale: CGFloat // cannot be zero (causes division by zero)
     // === Properties ===
-    var winding: GLWinding { get { return (x[1] > x[0]) ? .ccw : .cw } }
+    var winding: GLWinding { get { return (toView[1].x > toView[1].x) ? .ccw : .cw } }
     
     // === Ctors ===
-    init(_ newResolution: CGFloat, _ isoUnit: Int) {
-        self.isoUnit = isoUnit <= 0 ? 1 : isoUnit
+    init(_ newResolution: CGFloat, isoScale: CGFloat = IsoProjection.defaultIsoScale) {
+        self.isoScale = isoScale <= 0 ? Self.defaultIsoScale : isoScale
         super.init()
         self.resolution = newResolution.isZero ? 1.0 : newResolution
     }
     
     // === Functions ===
-    func cull(_ winding: GLWinding = GLWinding.ccw) -> Bool {
-        return cullNear() || cullFar()
-    }
-    private func cullNear() -> Bool {
-        if let camera = self.camera {
-            return z.less(camera.nearClip)
-        }
+    // ToDo rework to compare camera against the GLFloat3 array
+    func cullNear() -> Bool {
+        if let c = camera { return toView.compactMap { i in i.z }.less(c.nearClip) }
         return false
     }
-    private func cullFar() -> Bool {
-        if let camera = self.camera {
-            return z.greater(camera.farClip)
-        }
+    func cullFar() -> Bool {
+        if let c = camera { return toView.compactMap { i in i.z }.greater(c.farClip) }
         return false
     }
+    func clipNear() -> Bool { return false }
+    func clipFar() -> Bool { return false }
     
-    func clipNear() -> Bool {
-        //        if let camera = self.camera {
-        //            var clipped: Bool = false
-        //            return clipped
-        //        }
-        return false
-    }
-    func distanceTo2D(_ location: CGPoint) -> CGFloat {
-        return (MoGLMath.dist2f(location.x, location.y, CGFloat(x[0] + x[1]) / 2.0, CGFloat(y[0] + y[1]) / 2.0))
+    func distanceTo3D(_ location: GLFloat3) -> CGFloat {
+        let locViewMiddle = (toView[0] + toView[1]) / 2.0
+        return (location - locViewMiddle).magnitude
     }
     
     func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
@@ -63,32 +55,32 @@ class IsometricProjection: TransformerStage, Projection {
             let y2: CGFloat = (((nP2.y) - cameraTfs.y) / resolution)
             
             //view X position 
-            x = [x1, x2, x2, x1]
+            let x = [x1, x2, x2, x1]
             //view Y position (depth)
-            y[0] = (y1)
-            y[1] = (y2)
-            y[2] = (y2) + (CGFloat(ze2.height) / CGFloat(isoUnit))
-            y[3] = (y1) + (CGFloat(ze1.height) / CGFloat(isoUnit))
+            let y = [y1, y2, 
+                     y2 + (CGFloat(ze2.height) / (isoScale)), 
+                     y1 + (CGFloat(ze1.height) / (isoScale))]
             
-            //view z position
-            z[0] = -(-ze1.min + cameraZ)
-            z[1] = -(-ze2.min + cameraZ)
-            z[2] = -(-ze2.max - cameraZ)
-            z[3] = -(-ze1.max - cameraZ) 
+            var z: [CGFloat] = [0.0, 0.0, 0.0, 0.0]
+            //view z position 
             
             z[3] = (ze1.min - cameraZ + (y[3] / resolution)) 
             z[2] = (ze2.min - cameraZ + (y[2] / resolution))
             z[1] = (ze2.max - cameraZ + (y[1] / resolution))
             z[0] = (ze1.max - cameraZ + (y[0] / resolution))
+            
+            self.toView[0] = .init(x[0], y[0], z[0])
+            self.toView[1] = .init(x[1], y[1], z[1])
+            self.toView[2] = .init(x[2], y[2], z[2])
+            self.toView[3] = .init(x[3], y[3], z[3])
         }
     }
     
     func projectToScreen() -> Bool {
         if let camera = self.camera {
-            //screen X position 
-            x += camera.w2
-            //screen Y position
-            // y += camera.h2
+            for i in 0..<toView.count {
+                toScreen[i] = toView[i].xy + GLFloat2(camera.w2, 0/*camera.h2*/)
+            }
         }
         
         return false

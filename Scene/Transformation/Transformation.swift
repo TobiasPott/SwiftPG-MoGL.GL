@@ -4,9 +4,9 @@ protocol Transformation: Codable {
     
     // === Properties ===
     var location: CGPoint { get } 
-    var x: Int { get }
-    var y: Int { get }
-    var z: Int { get }
+    var x: CGFloat { get }
+    var y: CGFloat { get }
+    var z: CGFloat { get }
     var a: Int { get }
     var t: Int { get }
     var scale: GLFloat3 { get }
@@ -14,7 +14,7 @@ protocol Transformation: Codable {
     var useCustomPivot: Bool { get }
     
     // === Ctors ===
-    init(_location: CGPoint, _z: Int, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?)
+    init(_location: CGPoint, _z: CGFloat, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?)
 }
 
 // ToDo: add function to add transform (transform transforms)
@@ -36,7 +36,7 @@ extension Transformation {
     
     
     func xformTranslate(_ zEdge: ZEdge) -> ZEdge {
-        return ZEdge(zEdge.min + self.z, zEdge.height)
+        return ZEdge(zEdge.min + Int(self.z), zEdge.height)
     }
     func xformRotate(_ zEdge: ZEdge) -> ZEdge {
         print("xFormRotate(ZEgde) does nothing and is just for code symmetry, don't use unless overriden!")

@@ -61,6 +61,19 @@ class MoGLMath {
         let yPart = (y2 - y1) * (y2 - y1)
         return sqrt(xPart + yPart)
     }
+    static func dist3i(_ x1: Int, _ y1: Int, _ z1: Int, _ x2: Int, _ y2: Int, _ z2: Int) -> Int {
+        let xPart = (x2 - x1) * (x2 - x1)
+        let yPart = (y2 - y1) * (y2 - y1)
+        let zPart = (z2 - z1) * (z2 - z1)
+        return Int(sqrt(CGFloat(xPart + yPart + zPart)))
+    }
+    static func dist3f(_ x1: CGFloat, _ y1: CGFloat, _ z1: CGFloat, _ x2: CGFloat, _ y2: CGFloat, _ z2: CGFloat) -> CGFloat {
+        let xPart = (x2 - x1) * (x2 - x1)
+        let yPart = (y2 - y1) * (y2 - y1)
+        let zPart = (z2 - z1) * (z2 - z1)
+        return sqrt(xPart + yPart + zPart)
+    }
+    
     static func clipToViewport(x1: inout Int, y1: inout Int, _ viewport: CGRect) {
         if y1 < Int(viewport.minY) { y1 = Int(viewport.minY + 1) }
         if x1 < Int(viewport.minX) { x1 = Int(viewport.minX + 1) }
