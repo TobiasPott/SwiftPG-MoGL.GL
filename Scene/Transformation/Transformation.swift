@@ -3,7 +3,7 @@ import SwiftUI
 protocol Transformation: Codable {
     
     // === Properties ===
-    var location: CGPoint { get } 
+    var location: GLFloat3 { get } 
     var x: CGFloat { get }
     var y: CGFloat { get }
     var z: CGFloat { get }
@@ -14,7 +14,7 @@ protocol Transformation: Codable {
     var useCustomPivot: Bool { get }
     
     // === Ctors ===
-    init(_location: CGPoint, _z: CGFloat, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?)
+    init(_location: GLFloat3, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?)
 }
 
 // ToDo: add function to add transform (transform transforms)
@@ -54,7 +54,7 @@ extension Transformation {
     }
     
     
-    func xformTranslate(_ point: CGPoint) -> CGPoint { return point + self.location }
+    func xformTranslate(_ point: CGPoint) -> CGPoint { return point + self.location.xy }
     func xformRotate(_ point: CGPoint) -> CGPoint {
         if self.a != 0 { return point.rotate(self.a, self.pivot.xy) }
         return point
@@ -66,12 +66,12 @@ extension Transformation {
     func xform(_ point: CGPoint) -> CGPoint {
         let scaled = point.scale(self.scale.xy, self.pivot.xy)
         let rotated = scaled.rotate(self.a, self.pivot.xy)
-        return rotated + self.location
+        return rotated + self.location.xy
     }
     
     
     func xformTranslate(_ edge: Edge2D) -> Edge2D { 
-        return .init(edge.p1 + self.location, edge.p2 + self.location)
+        return .init(edge.p1 + self.location.xy, edge.p2 + self.location.xy)
     }
     func xformRotate(_ edge: Edge2D) -> Edge2D {
         if self.a != 0 {

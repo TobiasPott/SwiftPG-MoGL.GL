@@ -4,24 +4,24 @@ class Transform: Transformation, ObservableObject, Codable {
     static let AnglePrecision: Int = 360
     static let AnglePrecisionSafeFactor: Int = AnglePrecision * 32
     
-    static let identity: Transform = .init(_location: .zero, _z: 0, _a: 0, _t: 0)
+    static let identity: Transform = .init(_location: .zero, _a: 0, _t: 0)
     
     // === Events === 
     let changed: Event<Void> = Event<Void>()    
     
     // === Members === 
-    @Published private var _location: CGPoint = .init(0, -100) 
-    @Published private var _z: CGFloat = -50.0
+    @Published private var _location: GLFloat3 = .init(0, -100, -50.0) 
+//    @Published private var _z: CGFloat = -50.0
     @Published private var _a: Int = .zero
     @Published private var _t: Int = .zero
     @Published private var _scale: GLFloat3 = .one
     @Published private var _pivot: GLFloat3? = nil // scale/rotate pivot 
     
     // === Properties === 
-    var location: CGPoint { get { return _location } } 
+    var location: GLFloat3 { get { return _location } } 
     var x: CGFloat { get { return (_location.x) } set { _location.x = (newValue) } }
     var y: CGFloat { get { return (_location.y) } set { _location.y = (newValue) } }
-    var z: CGFloat { get { return (_z) } set { _z = (newValue) } }
+    var z: CGFloat { get { return (_location.z) } set { _location.z = (newValue) } }
     var a: Int { 
         get { return Int(_a) } 
         set { _a = MoGLMath.safeAngle(newValue, rangeMax: Transform.AnglePrecision, safeGuard: Transform.AnglePrecisionSafeFactor) }
@@ -40,20 +40,19 @@ class Transform: Transformation, ObservableObject, Codable {
     
     // === Ctors === 
     convenience init() {
-        self.init(_location: .zero, _z: 0, _a: 0, _t: 0)
+        self.init(_location: .zero, _a: 0, _t: 0)
     }
-    init(_location: CGPoint, _z: CGFloat, _a: Int, _t: Int) {
-        self._location = _location; self._z = _z; self._a = _a; self._t = _t
+    init(_location: GLFloat3, _a: Int, _t: Int) {
+        self._location = _location; self._a = _a; self._t = _t
     }
-    required init(_location: CGPoint, _z: CGFloat, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?) {
-        self._location = _location; self._z = _z; self._a = _a; self._t = _t
+    required init(_location: GLFloat3, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?) {
+        self._location = _location; self._a = _a; self._t = _t
         self._scale = _scale; self._pivot = _pivot
     }
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         // decode individual members from container
-        self._location = try container.decode(CGPoint.self, forKey: ._location)
-        self._z = try container.decode(CGFloat.self, forKey: ._z)
+        self._location = try container.decode(GLFloat3.self, forKey: ._location)
         self._a = try container.decode(Int.self, forKey: ._a)
         self._t = try container.decode(Int.self, forKey: ._t)
         self._scale = try container.decode(GLFloat3.self, forKey: ._scale)
@@ -71,7 +70,7 @@ class Transform: Transformation, ObservableObject, Codable {
             self._location.x = self._location.x + MoGLMath.sin(self.a) * deltaY
             self._location.y = self._location.y + MoGLMath.cos(self.a) * deltaY 
         }
-        if deltaZ != 0 { self._z = self._z + Int(deltaZ) }
+        if deltaZ != 0 { self._location.z = self._location.z + Int(deltaZ) }
         self.onChanged()
     }
     func moveRelativeBy(_ deltaX: Int = 0, _ deltaY: Int = 0, _ deltaZ: Int = 0) {
@@ -81,7 +80,7 @@ class Transform: Transformation, ObservableObject, Codable {
         if deltaX != 0 { self._location.x = self._location.x + deltaX }
         if deltaY != 0 { self._location.y = self._location.y + deltaY }
         
-        if deltaZ != 0 { self._z = self._z + Int(deltaZ) }
+        if deltaZ != 0 { self._location.z = self._location.z + Int(deltaZ) }
         self.onChanged()
     }
     func moveBy(_ deltaX: Int = 0, _ deltaY: Int = 0, _ deltaZ: Int = 0) {
@@ -91,7 +90,7 @@ class Transform: Transformation, ObservableObject, Codable {
         if let x = toX { self._location.x = CGFloat(x) }
         if let y = toY { self._location.y = CGFloat(y) }
         
-        if let z = toZ { self._z = (z) }
+        if let z = toZ { self._location.z = (z) }
         self.onChanged()
     }
     
@@ -119,7 +118,6 @@ class Transform: Transformation, ObservableObject, Codable {
     // set/alter all transform members
     func set(_ other: Transform) {
         self._location = other._location
-        self._z = other._z
         self._a = other._a
         self._t = other._t
         self._scale = other._scale

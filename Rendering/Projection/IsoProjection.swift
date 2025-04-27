@@ -45,8 +45,8 @@ class IsoProjection: TransformerStage, Projection {
             let viewZ = (viewTfs.z)
             
             //offset bottom 2 points by player
-            let nP1 = (p1).rotate(viewTfs.a, viewLoc * -1, cosine, sine)
-            let nP2 = (p2).rotate(viewTfs.a, viewLoc * -1, cosine, sine)
+            let nP1 = (p1).rotate(viewTfs.a, viewLoc.xy * -1, cosine, sine)
+            let nP2 = (p2).rotate(viewTfs.a, viewLoc.xy * -1, cosine, sine)
             
             let x1: CGFloat = (((nP1.x) - viewTfs.x) / resolution)
             let y1: CGFloat = (((nP1.y) - viewTfs.y) / resolution)
