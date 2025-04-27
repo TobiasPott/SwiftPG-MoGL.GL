@@ -20,11 +20,11 @@ class IsoProjection: TransformerStage, Projection {
     // === Functions ===
     // ToDo rework to compare camera against the GLFloat3 array
     func cullNear() -> Bool {
-        if let c = camera { return toView.compactMap { i in i.z }.less(c.nearClip) }
+        if let vt = viewTarget { return toView.compactMap { i in i.z }.less(vt.nearClip) }
         return false
     }
     func cullFar() -> Bool {
-        if let c = camera { return toView.compactMap { i in i.z }.greater(c.farClip) }
+        if let vt = viewTarget { return toView.compactMap { i in i.z }.greater(vt.farClip) }
         return false
     }
     func clipNear() -> Bool { return false }
@@ -39,20 +39,20 @@ class IsoProjection: TransformerStage, Projection {
         // ToDo: transfer from projectToView(CGPoint..)
     }
     func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) {
-        if let camera = self.camera {
-            let cameraTfs = camera.transform
-            let cameraLoc = cameraTfs.location
-            let cameraZ = CGFloat(cameraTfs.z)
+        if let vt = self.viewTarget {
+            let viewTfs = vt.transform
+            let viewLoc = viewTfs.location
+            let viewZ = (viewTfs.z)
             
             //offset bottom 2 points by player
-            let nP1 = (p1).rotate(cameraTfs.a, cameraLoc * -1, cosine, sine)
-            let nP2 = (p2).rotate(cameraTfs.a, cameraLoc * -1, cosine, sine)
+            let nP1 = (p1).rotate(viewTfs.a, viewLoc * -1, cosine, sine)
+            let nP2 = (p2).rotate(viewTfs.a, viewLoc * -1, cosine, sine)
             
-            let x1: CGFloat = (((nP1.x) - cameraTfs.x) / resolution)
-            let y1: CGFloat = (((nP1.y) - cameraTfs.y) / resolution)
+            let x1: CGFloat = (((nP1.x) - viewTfs.x) / resolution)
+            let y1: CGFloat = (((nP1.y) - viewTfs.y) / resolution)
             
-            let x2: CGFloat = (((nP2.x) - cameraTfs.x) / resolution)
-            let y2: CGFloat = (((nP2.y) - cameraTfs.y) / resolution)
+            let x2: CGFloat = (((nP2.x) - viewTfs.x) / resolution)
+            let y2: CGFloat = (((nP2.y) - viewTfs.y) / resolution)
             
             //view X position 
             let x = [x1, x2, x2, x1]
@@ -63,11 +63,10 @@ class IsoProjection: TransformerStage, Projection {
             
             var z: [CGFloat] = [0.0, 0.0, 0.0, 0.0]
             //view z position 
-            
-            z[3] = (ze1.min - cameraZ + (y[3] / resolution)) 
-            z[2] = (ze2.min - cameraZ + (y[2] / resolution))
-            z[1] = (ze2.max - cameraZ + (y[1] / resolution))
-            z[0] = (ze1.max - cameraZ + (y[0] / resolution))
+            z[3] = (ze1.min - viewZ + (y[3] / resolution)) 
+            z[2] = (ze2.min - viewZ + (y[2] / resolution))
+            z[1] = (ze2.max - viewZ + (y[1] / resolution))
+            z[0] = (ze1.max - viewZ + (y[0] / resolution))
             
             self.toView[0] = .init(x[0], y[0], z[0])
             self.toView[1] = .init(x[1], y[1], z[1])
@@ -77,9 +76,9 @@ class IsoProjection: TransformerStage, Projection {
     }
     
     func projectToScreen() -> Bool {
-        if let camera = self.camera {
+        if let vt = self.viewTarget {
             for i in 0..<toView.count {
-                toScreen[i] = toView[i].xy + GLFloat2(camera.w2, 0/*camera.h2*/)
+                toScreen[i] = toView[i].xy + GLFloat2(vt.w2, 0/*vt.h2*/)
             }
         }
         

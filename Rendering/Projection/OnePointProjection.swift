@@ -14,19 +14,19 @@ class OnePointProjection: TransformerStage, Projection {
     
     // === Functions ===    
     func cullNear() -> Bool {
-        if let c = camera { return toView.compactMap { i in i.y }.less(c.nearClip) }
+        if let vt = viewTarget { return toView.compactMap { i in i.y }.less(vt.nearClip) }
         return false
     }
     func cullFar() -> Bool {
-        if let c = camera { return toView.compactMap { i in i.y }.greater(c.farClip) }
+        if let vt = viewTarget { return toView.compactMap { i in i.y }.greater(vt.farClip) }
         return false
     }
     
     func clipNear() -> Bool {
-        if let c = camera {
+        if let vt = viewTarget {
             var clipped: Bool = false
             for i in 0..<toView.count {
-                if toView[i].y <= c.nearClip { toView[i].y = c.nearClip + 1; clipped = true }
+                if toView[i].y <= vt.nearClip { toView[i].y = vt.nearClip + 1; clipped = true }
             }
             return clipped
         }
@@ -40,39 +40,35 @@ class OnePointProjection: TransformerStage, Projection {
     }
     func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
         // ToDo: transfer from projectToView(CGPoint..)
+        // when implementing, try avoiding carrying over point order (assume ccw winding but not starting at bottom points (though it will help understanding)
     }
     func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) {
-        if let camera = self.camera {
-            let cameraTfs = camera.transform
-            let cameraLoc = cameraTfs.location
+        if let vt = self.viewTarget {
+            let viewTfs = vt.transform
+            let viewLoc = viewTfs.location
             
             //offset bottom 2 points by player
-            let np1 = p1 - cameraLoc 
-            let x1: CGFloat = np1.x
-            let y1: CGFloat = np1.y
-            
-            let np2 = p2 - cameraLoc
-            let x2: CGFloat = np2.x
-            let y2: CGFloat = np2.y
+            let np1 = p1 - viewLoc 
+            let np2 = p2 - viewLoc
             
             //view X position
             var toView: [GLFloat3] = [.zero, .zero, .zero, .zero]
-            toView[0].x = (x1 * cosine - y1 * sine);
-            toView[1].x = (x2 * cosine - y2 * sine);
+            toView[0].x = (np1.x * cosine - np1.y * sine);
+            toView[1].x = (np2.x * cosine - np2.y * sine);
             toView[2].x = (toView[1].x)
             toView[3].x = (toView[0].x)
             
             //view Y position (depth)
-            toView[0].y = (y1 * cosine + x1 * sine)
-            toView[1].y = (y2 * cosine + x2 * sine)
+            toView[0].y = (np1.y * cosine + np1.x * sine)
+            toView[1].y = (np2.y * cosine + np2.x * sine)
             toView[2].y = (toView[1].y) 
             toView[3].y = (toView[0].y)
             
             //view z height
-            toView[3].z = (ze1.min - CGFloat(cameraTfs.z) + (toView[3].y / resolution)) 
-            toView[2].z = (ze2.min - CGFloat(cameraTfs.z) + (toView[2].y / resolution))
-            toView[1].z = (ze2.max - CGFloat(cameraTfs.z) + (toView[1].y / resolution))
-            toView[0].z = (ze1.max - CGFloat(cameraTfs.z) + (toView[0].y / resolution))
+            toView[3].z = (ze1.min - (viewTfs.z) + (toView[3].y / resolution)) 
+            toView[2].z = (ze2.min - (viewTfs.z) + (toView[2].y / resolution))
+            toView[1].z = (ze2.max - (viewTfs.z) + (toView[1].y / resolution))
+            toView[0].z = (ze1.max - (viewTfs.z) + (toView[0].y / resolution))
             
             self.toView.removeAll()
             self.toView.append(contentsOf: toView)
@@ -80,19 +76,18 @@ class OnePointProjection: TransformerStage, Projection {
     }
     
     func projectToScreen() -> Bool {
-        if let camera = self.camera {
+        if let vt = self.viewTarget {
             var clipped: Bool = false
-            let fov = camera.fov 
+            let fov = vt.fov 
             
             for i in 0..<toView.count {
                 toScreen[i] = toView[i].xy
                 if toScreen[i].y == 0 { toView[i].y = -1; clipped = true } // clip y if zero
                 if toScreen[i].y != 0 { 
-                    toScreen[i].x = toView[i].x * fov / toScreen[i].y + camera.w2 
-                    toScreen[i].y = toView[i].z * fov / toScreen[i].y + camera.h2 
+                    toScreen[i].x = toView[i].x * fov / toScreen[i].y + vt.w2 
+                    toScreen[i].y = toView[i].z * fov / toScreen[i].y + vt.h2 
                 }
             }
-            
             return clipped
         }
         // failed projection (indicates invalid/erratic data left in projection)

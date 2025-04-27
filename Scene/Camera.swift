@@ -4,21 +4,7 @@ enum ProjectionMode {
     case onePoint, planar, isometric
 }
 
-protocol ViewTarget: AnyObject {
-    var transform: Transform { get }
-    var fov: CGFloat { get }
-    var nearClip: CGFloat { get }
-    var farClip: CGFloat { get }
-    var viewport: CGRect { get }
-}
-//
-//extension ViewTarget {
-//    var aspect: CGFloat { get { return viewport.width / viewport.height } }
-//    var w2: CGFloat { get { return (viewport.width / 2) } }
-//    var h2: CGFloat { get { return (viewport.height / 2) } }
-//}
-
-class Camera: ObservableObject {
+class Camera: ObservableObject, ViewTarget {
     // === Members ===
     @Published var transform: Transform = Transform() 
     @Published var fov: CGFloat = 200.0
@@ -34,25 +20,20 @@ class Camera: ObservableObject {
     
     
     // === Properties ===
-    var aspect: CGFloat { get { return viewport.width / viewport.height } }
-    var w2: CGFloat { get { return (viewport.width / 2) } }
-    var h2: CGFloat { get { return (viewport.height / 2) } }
-    
     var projection: Projection { get { return _projection } }
     var projectionType: ProjectionMode { get { return _projectionMode } } 
-    
     
     // === Ctors ===
     init() {
         _projection = onePointProj
         //        _projection = isoProj
-        _projection.setCamera(self)
+        _projection.setViewTarget(self)
         transform.move(0, -100, 0)
     }
     
     // === Functions ===
     func updateProjection() {
-        projection.setCamera(self)
+        projection.setViewTarget(self)
     }
     func getRenderViewport(_ renderScale: CGFloat = 1.0) -> CGRect { 
         return CGRect(origin: viewport.origin, size: viewport.size * renderScale) 

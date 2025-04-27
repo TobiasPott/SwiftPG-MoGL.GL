@@ -10,7 +10,7 @@ class TransformerStage {
     internal var sine: CGFloat = 0.0
     internal var cosine: CGFloat = 1.0
     
-    internal var camera: Camera? = nil
+    internal var viewTarget: ViewTarget? = nil
     
     // === Functions ===
     /** Gets the 3D view space coordinates result from the last transformation */
@@ -24,10 +24,10 @@ class TransformerStage {
         else { return .zero }
     }
     
-    func getCamera() -> Camera? { return camera }
-    func setCamera(_ newCamera: Camera?) { 
-        self.camera = newCamera
-        let angle = newCamera != nil ? newCamera!.transform.a : 0
+    func getViewTarget() -> ViewTarget? { return viewTarget }
+    func setViewTarget(_ newViewTarget: ViewTarget?) { 
+        self.viewTarget = newViewTarget
+        let angle = newViewTarget != nil ? newViewTarget!.transform.a : 0
         self.cosine = MoGLMath.cos(angle)
         self.sine = MoGLMath.sin(angle)
     }

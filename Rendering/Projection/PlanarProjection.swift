@@ -14,15 +14,11 @@ class PlanarProjection: TransformerStage, Projection {
     
     // === Functions ===
     func cullNear() -> Bool {
-        if let camera = self.camera {
-            return toView.compactMap { i in i.z }.less(camera.nearClip)
-        }
+        if let vt = viewTarget { return toView.compactMap { i in i.z }.less(vt.nearClip) }
         return false
     }
     func cullFar() -> Bool {
-        if let camera = self.camera {
-            return toView.compactMap { i in i.z }.greater(camera.farClip)
-        }
+        if let vt = viewTarget { return toView.compactMap { i in i.z }.greater(vt.farClip) }
         return false
     }
     
@@ -38,32 +34,27 @@ class PlanarProjection: TransformerStage, Projection {
         // ToDo: transfer from projectToView(CGPoint..)
     }
     func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) {
-        if let camera = self.camera {
-            let cameraTfs = camera.transform
-            let cameraLoc = cameraTfs.location
-            let cameraZ = CGFloat(cameraTfs.z)
+        if let vt = self.viewTarget {
+            let viewTfs = vt.transform
+            let viewLoc = viewTfs.location
+            let viewZ = (viewTfs.z)
             
             //offset bottom 2 points by player
-            let nP1 = (p1).rotate(cameraTfs.a, cameraLoc * -1, cosine, sine)
-            let nP2 = (p2).rotate(cameraTfs.a, cameraLoc * -1, cosine, sine)
+            let nP1 = (p1).rotate(viewTfs.a, viewLoc * -1, cosine, sine)
+            let nP2 = (p2).rotate(viewTfs.a, viewLoc * -1, cosine, sine)
             
-            let x1: CGFloat = (((nP1.x) - cameraTfs.x) / resolution)
-            let y1: CGFloat = (((nP1.y) - cameraTfs.y) / resolution)
+            let x1: CGFloat = (((nP1.x) - viewTfs.x) / resolution)
+            let y1: CGFloat = (((nP1.y) - viewTfs.y) / resolution)
             
-            let x2: CGFloat = (((nP2.x) - cameraTfs.x) / resolution)
-            let y2: CGFloat = (((nP2.y) - cameraTfs.y) / resolution)
+            let x2: CGFloat = (((nP2.x) - viewTfs.x) / resolution)
+            let y2: CGFloat = (((nP2.y) - viewTfs.y) / resolution)
             
             //view X position 
             let x = [x1, x2, x2, x1]            
             //view Y position (depth)
             let y = [y1, y2, y2, y1]
-            
-            var z: [CGFloat] = [0.0, 0.0, 0.0, 0.0]
-            //view z position
-            z[0] = cameraZ - ze1.min
-            z[1] = cameraZ - ze2.min
-            z[2] = cameraZ - ze2.max
-            z[3] = cameraZ - ze1.max
+            //view z position            
+            let z: [CGFloat] = [viewZ - ze1.min, viewZ - ze2.min, viewZ - ze2.max, viewZ - ze1.max]
             
             self.toView[0] = .init(x[0], y[0], z[0])
             self.toView[1] = .init(x[1], y[1], z[1])
@@ -73,9 +64,9 @@ class PlanarProjection: TransformerStage, Projection {
     }
     
     func projectToScreen() -> Bool {
-        if let camera = self.camera {
+        if let vt = self.viewTarget {
             for i in 0..<toView.count {
-                toScreen[i] = toView[i].xy + GLFloat2(camera.w2, camera.h2)
+                toScreen[i] = toView[i].xy + vt.screenCenter
             }
         }
         
