@@ -12,7 +12,8 @@ protocol Projection {
     func getToView(_ index: Int) -> GLFloat3
     // ToDo: change get/setCamera to get/setViewTarget
     func getCamera() -> Camera?
-    func setCamera(_ newCamera: Camera?) 
+    func setCamera(_ newCamera: Camera?)
+//    func setCamera(_ newCamera: ViewTarget?)
     
     // projection to different spaces
     func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3)
@@ -26,11 +27,15 @@ protocol Projection {
     // clipping functions
     func clipNear() -> Bool
     func clipFar() -> Bool
-    
     // culling functions
-    func cull(_ winding: GLWinding) -> Bool
     func cullNear() -> Bool
     func cullFar() -> Bool
 }
 
 
+
+extension Projection {
+    func cull(_ winding: GLWinding = GLWinding.ccw) -> Bool {
+        return cullNear() || cullFar()
+    }
+}

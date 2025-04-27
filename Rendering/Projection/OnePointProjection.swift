@@ -1,7 +1,7 @@
 import SwiftUI
 
 // one-vanishing-point-perspective
-class OnePointProjection: TransformerStage, Projection, Culling {
+class OnePointProjection: TransformerStage, Projection {
     // === Members ===
     // === Properties ===
     var winding: GLWinding { get { return (toScreen[1].x > toScreen[0].x) ? .ccw : .cw } }

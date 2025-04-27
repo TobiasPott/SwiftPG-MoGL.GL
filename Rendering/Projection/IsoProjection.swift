@@ -2,7 +2,7 @@ import SwiftUI
 
 //https://gamedev.stackexchange.com/questions/159434/how-to-convert-3d-coordinates-to-2d-isometric-coordinates
 // projects zwo vertical edges onto x/y plane
-class IsoProjection: TransformerStage, Projection, Culling {
+class IsoProjection: TransformerStage, Projection {
     private static let defaultIsoScale: CGFloat = 1.75
     
     // === Members ===

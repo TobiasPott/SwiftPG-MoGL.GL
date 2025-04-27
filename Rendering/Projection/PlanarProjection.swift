@@ -1,7 +1,7 @@
 import SwiftUI
 
 // projects two vertical edges onto x/y plane
-class PlanarProjection: TransformerStage, Projection, Culling {
+class PlanarProjection: TransformerStage, Projection {
     // === Members ===
     // === Properties ===
     var winding: GLWinding { get { return (toScreen[1].x > toScreen[0].x) ? .ccw : .cw } }
