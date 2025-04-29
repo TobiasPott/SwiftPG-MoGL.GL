@@ -11,6 +11,10 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
     // === Static Members ===
     static var zero: Self { get{ Self.init() } }
     static let one: Self = .init(1, 1, 1)
+    static let right: Self = .init(1, 0, 0)
+    static let forward: Self = .init(0, 1, 0)
+    static let up: Self = .init(0, 0, 1)
+    
     static let gravity: Self = .init(0, 0, -9.81)
     
     // === Members ===

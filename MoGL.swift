@@ -8,7 +8,7 @@ typealias ContextFloatDelegate = (GraphicsContext, CGFloat) -> GraphicsContext
 
 class MoGL {
     // === Members ===
-    private var buffer: GLBuffer = GLBuffer()
+    private var buffer: GLPathBuffer = GLPathBuffer()
     internal var state: GLState = GLState()
     private var viewport: CGRect = .init(x: 0, y: 0, width: 320, height: 240)
     var context: GraphicsContext?

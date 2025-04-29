@@ -4,7 +4,7 @@ enum GLBufferTarget {
     case back, front
 }
 
-class GLBuffer {
+class GLPathBuffer {
     // === Members ===
     var back: Path = Path()
     private var front: Path = Path()

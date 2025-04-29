@@ -7,7 +7,7 @@ class OnePointProjection: TransformerStage, Projection {
     // ToDo: continue reworking winding to work with a full cube made of quads (which will be my starting point for other complex types?!
     //        Could passthrough winding from RDData (but would by kinda hacky)
     //        instead projection shouldn't affect winding and RDData should define it them selves (they should be able to tell, at least after projection/culling stages)
-    var winding: GLWinding { get { return .cw } } // (toScreen[1].x > toScreen[0].x) ? .ccw : .cw } }
+    var winding: GLWinding { get { return .cw } }
     
     // === Ctors ===
     init(_ newResolution: CGFloat) {
