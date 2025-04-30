@@ -1,6 +1,6 @@
 import SwiftUI
 
-class GLPolyShape: GLPolygon {
+class GLPolyShape: GLPolygon2D {
     // === Members ===
     var connected: Bool = false
     var closed: Bool = true

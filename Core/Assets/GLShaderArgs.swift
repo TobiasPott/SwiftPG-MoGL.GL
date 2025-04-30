@@ -23,11 +23,12 @@ struct GLShaderArgs {
     
     
     // === Functions ===
-    mutating func ensure(_ count: Int) {
-        let diff = count - _args.count
-        if diff > 0 {
-            for _ in 0..<diff { _args.append(.float(0.0)) }
-        }
+    mutating func reserve(_ count: Int) {
+        if count >= _args.count { 
+            _args.reserveCapacity(count)
+            for _ in _args.count..<_args.capacity { _args.append(.float(0.0)) 
+            }  
+        } 
     }
     static func uniform(_ args: [GLShaderArgs]) -> [Shader.Argument] {
         var result: [Shader.Argument] = []

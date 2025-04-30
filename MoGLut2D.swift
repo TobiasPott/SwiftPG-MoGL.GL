@@ -12,31 +12,40 @@ extension MoGL {
         glVertexArray2i([CGPoint(x0, y0), CGPoint(x1, y1), CGPoint(x2, y2), CGPoint(x3, y3)])
     }
     
+    func glPolygon2f(_ points: ArraySlice<CGPoint>, _ connected: Bool = false, _ closed: Bool = true) {
+        if points.count > 0, let first = points.first {
+                if !connected { glMove2f(first) }
+                for p in points { glVertex2f(p) }
+                // close if at least three points (line and points don't need closing)
+                if closed, points.count > 2 { glVertex2f(first) }
+        }
+    }
+    
     func glPolygon2f(_ points: [CGPoint], _ connected: Bool = false, _ closed: Bool = true) {
         if points.count > 0 {
             if !connected { glMove2f(points[0]) }
             for p in points { glVertex2f(p) }
             // close if at least two points
-            if closed, points.count > 1 { glVertex2f(points[0]) }
+            if closed, points.count > 2 { glVertex2f(points[0]) }
         }
     }
-    func glPolygon2i(_ points: [CGPoint], _ connected: Bool = false, _ closed: Bool = true) {
-        if points.count > 0 {
-            if !connected { glMove2i(points[0]) }
-            for p in points { glVertex2i(p) }
-            // close if at least two points
-            if closed, points.count > 1 { glVertex2i(points[0]) }
-        }
-    }
+//    func glPolygon2i(_ points: [CGPoint], _ connected: Bool = false, _ closed: Bool = true) {
+//        if points.count > 0 {
+//            if !connected { glMove2i(points[0]) }
+//            for p in points { glVertex2i(p) }
+//            // close if at least two points
+//            if closed, points.count > 1 { glVertex2i(points[0]) }
+//        }
+//    }
     
     func glQuad2f(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint) {
         glMove2f(tl)
         glVertexArray2f([tr, br, bl, tl])
     }
-    func glQuad2i(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint) {
-        glMove2i(tl)
-        glVertexArray2i([tr, br, bl, tl])
-    }
+//    func glQuad2i(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint) {
+//        glMove2i(tl)
+//        glVertexArray2i([tr, br, bl, tl])
+//    }
     
     func glColoredQuad2f(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint, _ color: Color) {
         self.glFlush()
@@ -44,12 +53,12 @@ extension MoGL {
         glQuad2f(tl, tr, br, bl)
         self.glSwap(draw: true)
     }
-    func glColoredQuad2i(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint, _ color: Color) {
-        self.glFlush()
-        self.glShading(.color(color))
-        glQuad2i(tl, tr, br, bl)
-        self.glSwap(draw: true)
-    }
+//    func glColoredQuad2i(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint, _ color: Color) {
+//        self.glFlush()
+//        self.glShading(.color(color))
+//        glQuad2i(tl, tr, br, bl)
+//        self.glSwap(draw: true)
+//    }
     
     func glColoredQuadStrip2f(_ tl: CGPoint, _ tr: CGPoint, _ br: CGPoint, _ bl: CGPoint, _ colors: [Color]) {
         let h = colors.count
@@ -97,22 +106,22 @@ extension MoGL {
         }   
     }
     
-    func glPolygon(_ polygon: GLPolygon) {
+    func glPolygon(_ polygon: GLPolygon2D) {
         polygon.drawPolygon(self)
     }
-    func glPolygons(_ polygons: [GLPolygon]) {
+    func glPolygons(_ polygons: [GLPolygon2D]) {
         for p in polygons.sorted(by: { lh, rh in return lh.fragment < rh.fragment }) {
             p.drawPolygon(self)
         }
     }
-    func glDrawPolygon(_ polygon: GLPolygon, with: GraphicsContext.Shading) {
+    func glDrawPolygon(_ polygon: GLPolygon2D, with: GraphicsContext.Shading) {
         if polygon.isEmpty { return }
         self.glFlush()
         self.glShading(with)
         polygon.drawPolygon(self)
         self.glSwap(draw: true)
     }
-    func glDrawPolygons(_ polygons: [GLPolygon], with: GraphicsContext.Shading) {
+    func glDrawPolygons(_ polygons: [GLPolygon2D], with: GraphicsContext.Shading) {
         if polygons.isEmpty { return }
         self.glFlush()
         self.glShading(with)
