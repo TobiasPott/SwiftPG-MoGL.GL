@@ -1,12 +1,13 @@
 import SwiftUI
 
 
-class GLPolygon2D: RandomAccessCollection {
+class GLPolygon2D {
     private var _vertices: [GLFloat2] = []
-    var fragment: CGFloat = 0
+    private var _fragments: [CGFloat] = []
     
     var isEmpty: Bool { get { return _vertices.isEmpty } }
     var vertices: [GLFloat2] { get { return _vertices } }
+    var fragments: [CGFloat] { get { return _fragments } }
     
     var startIndex: Int { 0 }
     var endIndex: Int  { _vertices.count }
@@ -16,35 +17,73 @@ class GLPolygon2D: RandomAccessCollection {
         get { _vertices[index] }
         set { _vertices[index] = newValue}
     }
+    subscript(fragIdx: Int) -> CGFloat {
+        get { _fragments[fragIdx] }
+        set { _fragments[fragIdx] = newValue}
+    }
+    
     
     func reserve(_ count: Int) { 
         if count >= _vertices.count { 
             _vertices.reserveCapacity(count)
-            for _ in _vertices.count..<_vertices.capacity { _vertices.append(.zero) 
+            _fragments.reserveCapacity(count)
+            for _ in _vertices.count..<_vertices.capacity {
+                _vertices.append(.zero) 
+                _fragments.append(.zero) 
             }  
         } 
     }
     func append(_ vertex: GLFloat2) { _vertices.append(vertex) }
-    
-    func append(contentsOf: any Sequence<GLFloat2>) { _vertices.append(contentsOf: contentsOf) }
-    func append(vertices: [GLFloat2]) { _vertices.append(contentsOf: vertices) }
-    
-    func removeAll() { _vertices.removeAll(keepingCapacity: true) }
-    func removeAt(_ at: Int) { _vertices.remove(at: at) }
+//    
+    func append(contentsOf: any Sequence<GLFloat2>) { 
+        let count = _vertices.count
+        _vertices.append(contentsOf: contentsOf) 
+        _fragments.append(contentsOf: Array.init(repeating: .zero, count: _vertices.count - count))
+    }
+    func removeAll() { 
+        _vertices.removeAll(keepingCapacity: true)
+        _fragments.removeAll(keepingCapacity: true)
+    }
+    func remove(_ at: Int) {
+        _vertices.remove(at: at)
+        _fragments.remove(at: at)
+    }
     func distinct() {
         //        let prevCount = _vertices.count
         var lastPoint = _vertices.first 
+        var lastFrag = _fragments.first
         for i in stride(from: _vertices.count-1, to: 0, by: -1) {
-            if lastPoint == _vertices[i] {
+            if lastPoint == _vertices[i], lastFrag == _fragments[i] {
                 _vertices.remove(at: i)
+                _fragments.remove(at: i)
             } else {
                 lastPoint = _vertices[i]
+                lastFrag = _fragments[i]
             }
         }
         //        print("distinct(\(prevCount) => \(_vertices.count))")
     }
-    func insertAt(_ vertex: GLFloat2, _ at: Int) { _vertices.insert(vertex, at: at) }
-    func insertAt(vertices: [GLFloat2], _ at: Int) { _vertices.insert(contentsOf: vertices, at: at) }
+    
+    func swap(_ source: Int, _ dest: Int, _ stride: Int) {
+        // unchecked implementation
+        if stride > 1 {
+            for i in 0..<stride {
+                let tmpVtx = _vertices[source+i]
+                _vertices[source+i] = _vertices[dest+i]
+                _vertices[dest+i] = tmpVtx
+                let tmpFrag = _fragments[source+i]
+                _fragments[source+i] = _fragments[dest+i]
+                _fragments[dest+i] = tmpFrag
+            }
+        } else if stride == 1 {
+            let tmpVtx = _vertices[source]
+            _vertices[source] = _vertices[dest]
+            _vertices[dest] = tmpVtx
+            let tmpFrag = _fragments[source]
+            _fragments[source] = _fragments[dest]
+            _fragments[dest] = tmpFrag
+        }
+    }
     
     
     func drawPolygon(_ gl: MoGL, _ options: Flags = .none) {

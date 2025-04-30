@@ -55,6 +55,22 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
     
     
     // === Functions ===
+    func normalized() -> GLFloat3 {
+        let length = self.magnitude
+        if magnitude != 0 {
+            return .init(x / length, y / length, z / length)
+        } else { return self }
+    }
+    mutating func normalize() {
+        let length = self.magnitude
+        if magnitude != 0 {
+            self.x /= length
+            self.y /= length
+            self.z /= length
+        }
+    }
+    
+    
     static prefix func -(_ val: GLFloat3) -> GLFloat3 { return GLFloat3(-val.x, -val.y, -val.z) }
     
     // === Static Functions === 
@@ -67,6 +83,12 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
             return decodedValue
         }
         return .zero
+    }
+    
+    static func cross(_ lhs: GLFloat3, _ rhs: GLFloat3) -> GLFloat3 {
+        return GLFloat3(lhs.y * rhs.z - lhs.z * rhs.y,
+                        lhs.z * rhs.x - lhs.x * rhs.z,
+                        lhs.x * rhs.y - lhs.y * rhs.x)
     }
 }
 

@@ -29,6 +29,12 @@ class PlanarProjection: TransformerStage, Projection {
         let locViewMiddle = (toView[0] + toView[1]) / 2.0
         return (location - locViewMiddle).magnitude
     }
+    func distanceTo3D(_ index: Int, _ location: GLFloat3) -> CGFloat {
+        return (location - toView[index]).magnitude        
+    }
+    func getWinding() -> GLWinding {
+        return .cw
+    }
     
     func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
         // ToDo: transfer from projectToView(CGPoint..)

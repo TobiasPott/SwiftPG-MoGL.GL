@@ -7,7 +7,7 @@ protocol Transformer {
     // === Functions ===
     func getToScreen(_ index: Int) -> CGPoint
     func getToView(_ index: Int) -> GLFloat3
-    // ToDo: change get/setCamera to get/setViewTarget
+    func getWinding() -> GLWinding
     func getViewTarget() -> ViewTarget?
     func setViewTarget(_ newViewTarget: ViewTarget?)
     
@@ -17,4 +17,5 @@ protocol Transformer {
     
     // helper/analysis functions
     func distanceTo3D(_ location: GLFloat3) -> CGFloat
+    func distanceTo3D(_ index: Int, _ location: GLFloat3) -> CGFloat
 }

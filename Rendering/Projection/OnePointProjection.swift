@@ -38,9 +38,20 @@ class OnePointProjection: TransformerStage, Projection {
     func clipFar() -> Bool { return false }
     
     func distanceTo3D(_ location: GLFloat3) -> CGFloat {
-        let locViewMiddle = (toView[0] + toView[1]) / 2.0
+        let locViewMiddle = (toView[0] + toView[1] + toView[2] + toView[3]) / 4.0
         return (location - locViewMiddle).magnitude
     }
+    func distanceTo3D(_ index: Int, _ location: GLFloat3) -> CGFloat {
+        return (location - toView[index]).magnitude        
+    }
+    func getWinding() -> GLWinding {
+        let v0 = toView[2] - toView[1]
+        let v1 = toView[0] - toView[1]
+        let cross = GLFloat3.cross(v0, v1).normalized()
+        // ToDo: check if angle from normal to backward (0, -1, 0) (everything beyond 90° should be clipped)
+        return .cw
+    }
+    
     func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
         
         // ToDo: transfer from projectToView(CGPoint..)
@@ -59,28 +70,28 @@ class OnePointProjection: TransformerStage, Projection {
                 toView[i] = newCoord
             }
             /*
-            //offset bottom 2 points by player
-            let np1 = p1 - viewLoc 
-            let np2 = p2 - viewLoc
-            
-            //view X position
-            toView[0].x = (np1.x * cosine - np1.y * sine);
-            toView[1].x = (np2.x * cosine - np2.y * sine);
-            toView[2].x = (toView[1].x)
-            toView[3].x = (toView[0].x)
-            
-            //view Y position (depth)
-            toView[0].y = (np1.y * cosine + np1.x * sine)
-            toView[1].y = (np2.y * cosine + np2.x * sine)
-            toView[2].y = (toView[1].y) 
-            toView[3].y = (toView[0].y)
-            
-            //view z height
-            toView[3].z = (ze1.min - (viewTfs.z) + (toView[3].y / resolution)) 
-            toView[2].z = (ze2.min - (viewTfs.z) + (toView[2].y / resolution))
-            toView[1].z = (ze2.max - (viewTfs.z) + (toView[1].y / resolution))
-            toView[0].z = (ze1.max - (viewTfs.z) + (toView[0].y / resolution))
-            */
+             //offset bottom 2 points by player
+             let np1 = p1 - viewLoc 
+             let np2 = p2 - viewLoc
+             
+             //view X position
+             toView[0].x = (np1.x * cosine - np1.y * sine);
+             toView[1].x = (np2.x * cosine - np2.y * sine);
+             toView[2].x = (toView[1].x)
+             toView[3].x = (toView[0].x)
+             
+             //view Y position (depth)
+             toView[0].y = (np1.y * cosine + np1.x * sine)
+             toView[1].y = (np2.y * cosine + np2.x * sine)
+             toView[2].y = (toView[1].y) 
+             toView[3].y = (toView[0].y)
+             
+             //view z height
+             toView[3].z = (ze1.min - (viewTfs.z) + (toView[3].y / resolution)) 
+             toView[2].z = (ze2.min - (viewTfs.z) + (toView[2].y / resolution))
+             toView[1].z = (ze2.max - (viewTfs.z) + (toView[1].y / resolution))
+             toView[0].z = (ze1.max - (viewTfs.z) + (toView[0].y / resolution))
+             */
             self.toView.removeAll()
             self.toView.append(contentsOf: toView)
         }

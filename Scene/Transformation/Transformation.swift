@@ -30,7 +30,6 @@ extension Transformation {
         // scale first
         // rotate
         // translate last
-        
         return Transform() as! T 
     } // transform two into one ?FixedTransform? (may add 'init' to protocol and allow generic function to provide type to combine the inputs into
     
@@ -70,26 +69,26 @@ extension Transformation {
     }
     
     
-    func xformTranslate(_ edge: Edge2D) -> Edge2D { 
-        return .init(edge.p1 + self.location.xy, edge.p2 + self.location.xy)
-    }
-    func xformRotate(_ edge: Edge2D) -> Edge2D {
-        if self.a != 0 {
-            return .init(edge.p1.rotate(self.a, self.pivot.xy),
-                         edge.p2.rotate(self.a, self.pivot.xy))
-        }
-        return edge
-    }
-    func xformScale(_ edge: Edge2D) -> Edge2D {
-        if scale.x != 1.0 || scale.y != 1.0 {
-            return .init(edge.p1.scale(self.scale.xy, self.pivot.xy),
-                         edge.p2.scale(self.scale.xy, self.pivot.xy))
-        }
-        return edge
-    }
-    func xform(_ edge: Edge2D) -> Edge2D {
-        let scaled = xformScale(edge)
-        let rotated = xformScale(scaled)
-        return xformTranslate(rotated)
-    }
+//    func xformTranslate(_ edge: Edge2D) -> Edge2D { 
+//        return .init(edge.p1 + self.location.xy, edge.p2 + self.location.xy)
+//    }
+//    func xformRotate(_ edge: Edge2D) -> Edge2D {
+//        if self.a != 0 {
+//            return .init(edge.p1.rotate(self.a, self.pivot.xy),
+//                         edge.p2.rotate(self.a, self.pivot.xy))
+//        }
+//        return edge
+//    }
+//    func xformScale(_ edge: Edge2D) -> Edge2D {
+//        if scale.x != 1.0 || scale.y != 1.0 {
+//            return .init(edge.p1.scale(self.scale.xy, self.pivot.xy),
+//                         edge.p2.scale(self.scale.xy, self.pivot.xy))
+//        }
+//        return edge
+//    }
+//    func xform(_ edge: Edge2D) -> Edge2D {
+//        let scaled = xformScale(edge)
+//        let rotated = xformScale(scaled)
+//        return xformTranslate(rotated)
+//    }
 }

@@ -10,7 +10,7 @@ class GLPolyShape: GLPolygon2D {
     convenience init(_ points: [CGPoint], _ options: Flags) { self.init(points, nil, options) }
     init(_ points: [CGPoint], _ transform: Transformation? = nil, _ options: Flags) {
         super.init()
-        self.append(vertices: points)
+        self.append(contentsOf: points)
         self.transform = transform
         self.connected = options.contains(.connected)
         self.closed = options.contains(.closed)
