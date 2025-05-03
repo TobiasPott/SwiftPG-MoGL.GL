@@ -51,6 +51,10 @@ class GLPolygon2D {
         _vertices.remove(at: at)
         _fragments.remove(at: at)
     }
+    func removeSubrange(_ bounds: Range<Int>) {
+        _vertices.removeSubrange(bounds)
+        _fragments.removeSubrange(bounds)
+    }
     func distinct() {
         //        let prevCount = _vertices.count
         var lastPoint = _vertices.first 
