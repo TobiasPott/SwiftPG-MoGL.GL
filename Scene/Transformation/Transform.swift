@@ -11,7 +11,7 @@ class Transform: Transformation, ObservableObject, Codable {
     
     // === Members === 
     @Published private var _location: GLFloat3 = .init(0, -100, -50.0) 
-//    @Published private var _z: CGFloat = -50.0
+    //    @Published private var _z: CGFloat = -50.0
     @Published private var _a: Int = .zero
     @Published private var _t: Int = .zero
     @Published private var _scale: GLFloat3 = .one
@@ -35,7 +35,21 @@ class Transform: Transformation, ObservableObject, Codable {
         get { return _pivot ?? GLFloat3(location.x, location.y, z) } 
     }
     var useCustomPivot: Bool { return _pivot != nil }
+    var forward: GLFloat3 { 
+        let rad = CGFloat(_a) * 180.0 / CGFloat.pi
+//        let cosA = cos(rad)
+//        let sinA = sin(rad)
+        let fwd = GLFloat3.forward
+        // ToDo: this calculation don't seem to be correct! Check why (no real clue atm) 
+        let rotFwdXY = fwd.xy.rotate(_a, .zero)
+        let rotFwd = GLFloat3(rotFwdXY.x, rotFwdXY.y, fwd.z)
+//        print("RotFwd: \(rotFwd)")
+        return rotFwd
+    }
     
+    //    |cos θ   −sin θ   0| |x|   |x cos θ − y sin θ|   |x'|
+    //    |sin θ    cos θ   0| |y| = |x sin θ + y cos θ| = |y'|
+    //    |  0       0      1| |z|   |        z        |   |z'|
     func setPivot(newValue: GLFloat3?) { _pivot = newValue }
     
     // === Ctors === 

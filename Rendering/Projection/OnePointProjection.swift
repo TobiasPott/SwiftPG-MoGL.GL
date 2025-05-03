@@ -40,95 +40,74 @@ class OnePointProjection: TransformerStage, Projection {
     func distanceTo3D(_ location: GLFloat3) -> CGFloat {
         let locViewMiddle = (toView[0] + toView[1] + toView[2] + toView[3]) / 4.0
         return (location - locViewMiddle).magnitude
+        // ToDo: add sign for location in front of view (always forward plane check) (is it dot product?)
     }
     func distanceTo3D(_ index: Int, _ location: GLFloat3) -> CGFloat {
         return (location - toView[index]).magnitude        
     }
     func getWinding() -> GLWinding {
-        let v0 = toView[2] - toView[1]
-        let v1 = toView[0] - toView[1]
-        let cross = GLFloat3.cross(v0, v1).normalized()
-        // ToDo: check if angle from normal to backward (0, -1, 0) (everything beyond 90° should be clipped)
+        let v0 = (toView[2] - toView[1]).normalized()
+        let v1 = (toView[0] - toView[1]).normalized()
+
+        var cross = GLFloat3.cross(v1, v0).normalized()
+        if let vt = viewTarget {
+            let rotCrossXY = cross.xy.rotate(vt.transform.a, .zero)
+            cross = .init(rotCrossXY.x, rotCrossXY.y, cross.z);
+        }
+        // ToDo: check & validate the transform.forward (rotated values don't seem correct)
+        let fwd = GLFloat3.forward // (viewTarget?.transform.forward ?? .forward).normalized()
+        let dot = GLFloat3.dot(cross, fwd)
+        let rad = AngleBetweenTwoVectors(vA: cross, vB: fwd) * (180.0 / .pi)
+        // ToDo: include check for transformed vertices all below or all above camera position
+        //    all 
+        
+        print("View: \(toView)\n\(cross) -> \(dot)")
+//        print("Cross: \(cross) . \(fwd) = \(dot)")
+//        print("ToView: \(toView)")
+//        print("Cross: \(cross) \(fwd) = \(rad)\n\(AngleBetweenTwoVectors(vA: .forward, vB: .up) * (180.0 / .pi))\n\n\n\n")
+        
+//        print("Dot: \(dot)")
+        if dot > 1 { return .ccw }
         return .cw
     }
+    func AngleBetweenTwoVectors(vA: GLFloat3, vB: GLFloat3) -> CGFloat {
+        var fCrossX:CGFloat, fCrossY:CGFloat, fCrossZ:CGFloat,
+            fCross:CGFloat, fDot:CGFloat;
+        fCrossX = vA.y * vB.z - vA.z * vB.y;
+        fCrossY = vA.z * vB.x - vA.x * vB.z;
+        fCrossZ = vA.x * vB.y - vA.y * vB.x;
+        fCross = sqrt(fCrossX * fCrossX + fCrossY * fCrossY + fCrossZ * fCrossZ);
+        fDot = vA.x * vB.x + vA.y * vB.y + vA.z + vB.z;
+        return atan2(fCross, fDot);
+    }
     
-    func projectToView(_ pb1: GLFloat3, _ pb2: GLFloat3, _ pt1: GLFloat3, _ pt2: GLFloat3) {
-        
-        // ToDo: transfer from projectToView(CGPoint..)
-        // when implementing, try avoiding carrying over point order (assume ccw winding but not starting at bottom points (though it will help understanding)
+    func projectToView(_ p0: GLFloat3, _ p1: GLFloat3, _ p2: GLFloat3, _ p3: GLFloat3) {
         if let vt = self.viewTarget {
             let viewTfs = vt.transform
             let viewLoc = viewTfs.location
             
-            var toView: [GLFloat3] = [pb1, pb2, pt1, pt2]
+            var toView: [GLFloat3] = [p0, p1, p2, p3]
             for i in 0..<toView.count {
                 let vC = toView[i] - viewLoc
                 var newCoord = vC
-                newCoord.x = (vC.x * cosine - vC.y * sine)
-                newCoord.y = (vC.y * cosine + vC.x * sine)
-                newCoord.z = (vC.z) + (newCoord.y / resolution)
+                newCoord.x = (vC.x * cosine - vC.y * sine) / resolution
+                newCoord.y = (vC.y * cosine + vC.x * sine) / vt.fov
+                if vC.z > 0 {
+                    newCoord.z = (vC.z - (newCoord.y)) / resolution   
+                } else {
+                    newCoord.z = (vC.z + (newCoord.y)) / resolution
+                }
                 toView[i] = newCoord
             }
-            /*
-             //offset bottom 2 points by player
-             let np1 = p1 - viewLoc 
-             let np2 = p2 - viewLoc
-             
-             //view X position
-             toView[0].x = (np1.x * cosine - np1.y * sine);
-             toView[1].x = (np2.x * cosine - np2.y * sine);
-             toView[2].x = (toView[1].x)
-             toView[3].x = (toView[0].x)
-             
-             //view Y position (depth)
-             toView[0].y = (np1.y * cosine + np1.x * sine)
-             toView[1].y = (np2.y * cosine + np2.x * sine)
-             toView[2].y = (toView[1].y) 
-             toView[3].y = (toView[0].y)
-             
-             //view z height
-             toView[3].z = (ze1.min - (viewTfs.z) + (toView[3].y / resolution)) 
-             toView[2].z = (ze2.min - (viewTfs.z) + (toView[2].y / resolution))
-             toView[1].z = (ze2.max - (viewTfs.z) + (toView[1].y / resolution))
-             toView[0].z = (ze1.max - (viewTfs.z) + (toView[0].y / resolution))
-             */
+            
+//            print("View: \(toView)")
+            
             self.toView.removeAll()
             self.toView.append(contentsOf: toView)
         }
         
     }
-    func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) {
-        if let vt = self.viewTarget {
-            let viewTfs = vt.transform
-            let viewLoc = viewTfs.location
-            
-            //offset bottom 2 points by player
-            let np1 = p1 - viewLoc.xy
-            let np2 = p2 - viewLoc.xy
-            
-            //view X position
-            var toView: [GLFloat3] = [.zero, .zero, .zero, .zero]
-            toView[0].x = (np1.x * cosine - np1.y * sine);
-            toView[1].x = (np2.x * cosine - np2.y * sine);
-            toView[2].x = (toView[1].x)
-            toView[3].x = (toView[0].x)
-            
-            //view Y position (depth)
-            toView[0].y = (np1.y * cosine + np1.x * sine)
-            toView[1].y = (np2.y * cosine + np2.x * sine)
-            toView[2].y = (toView[1].y) 
-            toView[3].y = (toView[0].y)
-            
-            //view z height
-            toView[3].z = (ze1.min - (viewTfs.z) + (toView[3].y / resolution)) 
-            toView[2].z = (ze2.min - (viewTfs.z) + (toView[2].y / resolution))
-            toView[1].z = (ze2.max - (viewTfs.z) + (toView[1].y / resolution))
-            toView[0].z = (ze1.max - (viewTfs.z) + (toView[0].y / resolution))
-            
-            self.toView.removeAll()
-            self.toView.append(contentsOf: toView)
-        }
-    }
+    func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) { }
     
     func projectToScreen() -> Bool {
         if let vt = self.viewTarget {
@@ -137,12 +116,16 @@ class OnePointProjection: TransformerStage, Projection {
             
             for i in 0..<toView.count {
                 toScreen[i] = toView[i].xy
-                if toScreen[i].y == 0 { toView[i].y = -1; clipped = true } // clip y if zero
+                
+                if toScreen[i].y == 0 { toScreen[i].y = -1; clipped = true } // clip y if zero
                 if toScreen[i].y != 0 { 
-                    toScreen[i].x = toView[i].x * fov / toScreen[i].y + vt.w2 
-                    toScreen[i].y = toView[i].z * fov / toScreen[i].y + vt.h2 
+                    // ToDo: add fov to projectToView (I should have correct view space normals then?!
+                    toScreen[i].x = (toView[i].x / toScreen[i].y * resolution) + vt.w2 
+                    toScreen[i].y = (toView[i].z / toScreen[i].y * resolution) + vt.h2
                 }
             }
+
+//            print("Screen: \(toScreen[0]), \(toScreen[1]), \(toScreen[2]), \(toScreen[3]))")
             return clipped
         }
         // failed projection (indicates invalid/erratic data left in projection)

@@ -6,8 +6,13 @@ enum Channel: Int, RawRepresentable {
 
 typealias GLFloat2 = CGPoint
 // ToDo: Consider adding subscript with channels to make 'generalised' functions more easy to code (based on index)
+extension GLFloat2: @retroactive CustomStringConvertible {
+    public var description: String {
+        return "(\(String(format: "%.3f", x)), \(String(format: "%.3f", y)))"
+    }
+} 
 
-struct GLFloat3: Codable, Animatable, VectorArithmetic {
+struct GLFloat3: Codable, Animatable, VectorArithmetic, CustomStringConvertible {
     // === Static Members ===
     static var zero: Self { get{ Self.init() } }
     static let one: Self = .init(1, 1, 1)
@@ -29,7 +34,9 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
     var magnitudeSquared: Double { get { return (x * x) + (y * y) + (z * z) } }
     var magnitude: Double { get { return sqrt(magnitudeSquared) } }
     
-    
+    var description: String {
+        return "(\(String(format: "%.4f", x)), \(String(format: "%.4f", y)), \(String(format: "%.4f", z)))"
+    }
     // === Indexer ===
     subscript(index: Int) -> CGFloat {
         get { channels[index] }
@@ -42,13 +49,13 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
     init(_ x: any BinaryFloatingPoint, _ y: any BinaryFloatingPoint, _ z: any BinaryFloatingPoint) {
         self.x = CGFloat(x); self.y = CGFloat(y); self.z = CGFloat(z)
     }
-    init(x: any BinaryFloatingPoint) { self.x = CGFloat(x); self.y = 0; self.z = 0 }
-    init(y: any BinaryFloatingPoint) { self.x = 0; self.y = CGFloat(y); self.z = 0 }
-    init(z: any BinaryFloatingPoint) { self.x = 0; self.y = 0; self.z = CGFloat(z) }
-    // integer ctors
     init(_ x: any BinaryInteger, _ y: any BinaryInteger, _ z: any BinaryInteger) {
         self.x = CGFloat(x); self.y = CGFloat(y); self.z = CGFloat(z)
     }
+    
+    init(x: any BinaryFloatingPoint) { self.x = CGFloat(x); self.y = 0; self.z = 0 }
+    init(y: any BinaryFloatingPoint) { self.x = 0; self.y = CGFloat(y); self.z = 0 }
+    init(z: any BinaryFloatingPoint) { self.x = 0; self.y = 0; self.z = CGFloat(z) }
     init(x: any BinaryInteger) { self.x = CGFloat(x); self.y = 0; self.z = 0 }
     init(y: any BinaryInteger) { self.x = 0; self.y = CGFloat(y); self.z = 0 }
     init(z: any BinaryInteger) { self.x = 0; self.y = 0; self.z = CGFloat(z) }
@@ -89,6 +96,9 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic {
         return GLFloat3(lhs.y * rhs.z - lhs.z * rhs.y,
                         lhs.z * rhs.x - lhs.x * rhs.z,
                         lhs.x * rhs.y - lhs.y * rhs.x)
+    }
+    static func dot(_ lhs: GLFloat3, _ rhs: GLFloat3) -> CGFloat {
+        return lhs.x * rhs.x + lhs.y + rhs.y + lhs.z * rhs.z
     }
 }
 

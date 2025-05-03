@@ -15,13 +15,16 @@ class GLPolygon2D {
     
     subscript(index: Int) -> GLFloat2 {
         get { _vertices[index] }
-        set { _vertices[index] = newValue}
+        set { _vertices[index] = newValue } 
     }
     subscript(fragIdx: Int) -> CGFloat {
         get { _fragments[fragIdx] }
-        set { _fragments[fragIdx] = newValue}
+        set { _fragments[fragIdx] = newValue }
     }
     
+    
+    func set(at: Int, _ quadlet: Quadlet<GLFloat2>) { _vertices.set(at: at, quadlet) }
+    func set(at: Int, _ quadlet: Quadlet<CGFloat>) { _fragments.set(at: at, quadlet) }
     
     func reserve(_ count: Int) { 
         if count >= _vertices.count { 
@@ -34,7 +37,7 @@ class GLPolygon2D {
         } 
     }
     func append(_ vertex: GLFloat2) { _vertices.append(vertex) }
-//    
+    //    
     func append(contentsOf: any Sequence<GLFloat2>) { 
         let count = _vertices.count
         _vertices.append(contentsOf: contentsOf) 
@@ -89,18 +92,6 @@ class GLPolygon2D {
     func drawPolygon(_ gl: MoGL, _ options: Flags = .none) {
         if !isEmpty { gl.glPolygon2f(self.vertices, options.contains(.connected), options.contains(.closed)) } 
     }
-    //    func drawQuads(_ gl: MoGL) {
-    //        if !isEmpty {
-    //            let quadCount = self.count / 4
-    //            for i in 0..<(quadCount-1) {
-    //                let sIdx = i * 4
-    //                let eIdx = (i * 4) + 3
-    //                gl.glPolygon2f(self.vertices[sIdx..<eIdx], false, true)
-    //            }
-    //        }
-    //    }
-    
-    
     
     struct Flags : OptionSet, Codable
     {
@@ -112,4 +103,13 @@ class GLPolygon2D {
         static let all: Self = [.connected, .closed]
     }
     
+}
+
+extension Array {
+    mutating func set(at: Int, _ quadlet: Quadlet<Array.Element>) -> Void {
+        self[at] = quadlet.i0
+        self[at+1] = quadlet.i1
+        self[at+2] = quadlet.i2
+        self[at+3] = quadlet.i3
+    }
 }

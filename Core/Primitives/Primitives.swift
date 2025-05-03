@@ -1,16 +1,16 @@
 import SwiftUI
 
-struct Quadlet<Of: Codable>: Codable { 
+struct Quadlet<Of> { 
     let i0, i1, i2, i3: Of
     init(_ inAll: Of) { i0 = inAll; i1 = inAll; i2 = inAll; i3 = inAll }
     init(_ in0: Of, _ in1: Of, _ in2: Of, _ in3: Of) { i0 = in0; i1 = in1; i2 = in2; i3 = in3 }
 }
-struct Triplet<Of: Codable>: Codable { 
+struct Triplet<Of> { 
     let i0, i1, i2: Of
     init(_ inAll: Of) { i0 = inAll; i1 = inAll; i2 = inAll }
     init(_ in0: Of, _ in1: Of, _ in2: Of) { i0 = in0; i1 = in1; i2 = in2 }
 }
-struct Duplet<Of: Codable>: Codable { 
+struct Duplet<Of> { 
     let i0, i1: Of     
     init(_ inAll: Of) { i0 = inAll; i1 = inAll }
     init(_ in0: Of, _ in1: Of) { i0 = in0; i1 = in1 }
