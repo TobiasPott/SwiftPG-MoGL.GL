@@ -11,7 +11,7 @@ import SwiftUI
 //typealias Vector3 = GLFloat3
 //typealias Float32 = CGFloat 
 
-struct GLQuat {
+struct GLQuat: Codable {
     var x: CGFloat, y: CGFloat, z: CGFloat = 0, w: CGFloat = 0
     
     init() {
@@ -24,7 +24,7 @@ struct GLQuat {
         self.x = x; self.y = y; self.z = z; self.w = w
     }
     init(other: GLQuat) {
-//        set(other.x, other.y, other.z, other.w)
+        //        set(other.x, other.y, other.z, other.w)
         x = other.x; y = other.y; z = other.z; w = other.w
     }
     init(vector: GLFloat3, w _w: CGFloat) {
@@ -75,7 +75,9 @@ extension GLQuat {
         y = y * sin_theta_over_two;
         z = z * sin_theta_over_two;
         
-        return .init(x: x, y: y, z: z, w: w)
+        let result: GLQuat = .init(x: x, y: y, z: z, w: w)
+        print("AngleAxis: \(result)")
+        return result
     }
     
     mutating func invert() {
@@ -234,6 +236,9 @@ extension GLQuat {
         v.z = left.w*z + w*left.z + left.x*y - x*left.y
     }
     
+    func rot(v: GLFloat2) -> GLFloat2 {
+        return rot(v: GLFloat3(v.x, v.y, 0)).xy
+    }
     func rot(v: GLFloat3) -> GLFloat3 {
         
         var qv = GLFloat3(x, y, z)
@@ -242,6 +247,9 @@ extension GLQuat {
         return (v * (w*w - 0.5) + crossDot) * 2.0
     }
     
+    func invRot(v: GLFloat2) -> GLFloat2 {
+        return invRot(v: GLFloat3(v.x, v.y, 0)).xy
+    }
     func invRot(v: GLFloat3) -> GLFloat3 {
         
         var qv = GLFloat3(x, y, z)

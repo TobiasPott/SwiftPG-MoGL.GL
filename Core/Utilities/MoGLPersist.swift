@@ -9,8 +9,8 @@ struct MoGLPersist {
         tfs.x = CGFloat(ud.float(forKey: prefix + ".location.x"))
         tfs.y = CGFloat(ud.float(forKey: prefix + ".location.y"))
         tfs.z = CGFloat(ud.float(forKey: prefix + ".z"))
-        tfs.a = ud.integer(forKey: prefix + ".a")
-        tfs.t = ud.integer(forKey: prefix + ".t")
+        tfs.a = CGFloat(ud.float(forKey: prefix + ".a"))
+        tfs.t = CGFloat(ud.float(forKey: prefix + ".t"))
         tfs.scale = GLFloat3.decodeFromJson(ud.object(forKey: prefix + ".scale") as! Data)
         // try get pivot data if not existent set to nil
         if let data: Data = ud.object(forKey: prefix + ".pivot") as? Data {

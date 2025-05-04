@@ -4,6 +4,8 @@ import Foundation
 class MoGLMath {
     private static let DegRange: Int = 360
     private static let DegRangeSafe: Int = DegRange * 32
+    private static let DegRangef: CGFloat = 360
+    private static let DegRangeSafef: CGFloat = DegRangef * 32
     private static let toRad: CGFloat = (1.0 / 180.0) * .pi
     
     
@@ -36,6 +38,14 @@ class MoGLMath {
         return CoreGraphics.sin(angle * MoGLMath.toRad) 
     }
     
+    
+    static func safeAngle(_ angle: CGFloat) -> CGFloat {
+        return safeAngle(angle, rangeMax: MoGLMath.DegRangef, safeGuard: MoGLMath.DegRangeSafef)
+    }
+    static func safeAngle(_ angle: CGFloat, rangeMax: CGFloat, safeGuard: CGFloat) -> CGFloat {
+        if angle < 0 { return (angle + safeGuard).truncatingRemainder(dividingBy: rangeMax) }
+        else { return angle.truncatingRemainder(dividingBy: rangeMax) }
+    }   
     static func safeAngle(_ angle: Int) -> Int {
         return safeAngle(angle, rangeMax: MoGLMath.DegRange, safeGuard: MoGLMath.DegRangeSafe)
     }

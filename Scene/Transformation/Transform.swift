@@ -10,23 +10,26 @@ class Transform: Transformation, ObservableObject, Codable {
     let changed: Event<Void> = Event<Void>()    
     
     // === Members === 
-    @Published private var _location: GLFloat3 = .init(0, -100, -50.0) 
-    @Published private var _a: Int = .zero
-    @Published private var _t: Int = .zero
+    @Published private var _location: GLFloat3 = .init(0, -100, -50.0)
     @Published private var _rotation: GLQuat = .init(angle: 0, axis: .up)
+    @Published private var _a: CGFloat = .zero
+    @Published private var _t: CGFloat = .zero
     @Published private var _scale: GLFloat3 = .one
     @Published private var _pivot: GLFloat3? = nil // scale/rotate pivot 
     
     // === Properties === 
     var location: GLFloat3 { get { return _location } } 
+    var rotation: GLQuat { get { return _rotation } } 
     var x: CGFloat { get { return (_location.x) } set { _location.x = (newValue) } }
     var y: CGFloat { get { return (_location.y) } set { _location.y = (newValue) } }
     var z: CGFloat { get { return (_location.z) } set { _location.z = (newValue) } }
-    var a: Int { 
-        get { return Int(_a) } 
-        set { _a = MoGLMath.safeAngle(newValue, rangeMax: Transform.AnglePrecision, safeGuard: Transform.AnglePrecisionSafeFactor) }
+    var a: CGFloat { 
+        get { return _a } 
+        set { _a = MoGLMath.safeAngle(newValue, rangeMax: CGFloat(Transform.AnglePrecision), safeGuard: CGFloat(Transform.AnglePrecisionSafeFactor)) 
+            _rotation = .init(angle: _a, axis: .up)
+        }
     }
-    var t: Int { 
+    var t: CGFloat { 
         get { return _t } 
         set { _t = newValue } // MoGLMath.safeAngle(newValue, precision: Transform.LookPrecision, safeFactor: Transform.LookPrecisionSafeFactor) }
     }
@@ -36,39 +39,32 @@ class Transform: Transformation, ObservableObject, Codable {
     }
     var useCustomPivot: Bool { return _pivot != nil }
     var forward: GLFloat3 { 
-        let rad = CGFloat(_a) * 180.0 / CGFloat.pi
-//        let cosA = cos(rad)
-//        let sinA = sin(rad)
-        let fwd = GLFloat3.forward
-        // ToDo: this calculation don't seem to be correct! Check why (no real clue atm) 
-        let rotFwdXY = fwd.xy.rotate(_a, .zero)
-        let rotFwd = GLFloat3(rotFwdXY.x, rotFwdXY.y, fwd.z)
-//        print("RotFwd: \(rotFwd)")
+        let rotFwd = _rotation.rot(v: .forward)
+//        print("RotFwd: \(rotFwd) \(_rotation)")
         return rotFwd
     }
     
-    //    |cos θ   −sin θ   0| |x|   |x cos θ − y sin θ|   |x'|
-    //    |sin θ    cos θ   0| |y| = |x sin θ + y cos θ| = |y'|
-    //    |  0       0      1| |z|   |        z        |   |z'|
     func setPivot(newValue: GLFloat3?) { _pivot = newValue }
     
     // === Ctors === 
     convenience init() {
         self.init(_location: .zero, _a: 0, _t: 0)
     }
-    init(_location: GLFloat3, _a: Int, _t: Int) {
+    init(_location: GLFloat3, _a: CGFloat, _t: CGFloat) {
         self._location = _location; self._a = _a; self._t = _t
     }
-    required init(_location: GLFloat3, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?) {
+    required init(_location: GLFloat3, _a: CGFloat, _t: CGFloat, _scale: GLFloat3, _pivot: GLFloat3?) {
         self._location = _location; self._a = _a; self._t = _t
+        self._rotation = GLQuat.fromAngleAxis(angle: _a, axis: .up)
         self._scale = _scale; self._pivot = _pivot
     }
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         // decode individual members from container
         self._location = try container.decode(GLFloat3.self, forKey: ._location)
-        self._a = try container.decode(Int.self, forKey: ._a)
-        self._t = try container.decode(Int.self, forKey: ._t)
+        self._rotation = try container.decode(GLQuat.self, forKey: ._rotation)
+        self._a = try container.decode(CGFloat.self, forKey: ._a)
+        self._t = try container.decode(CGFloat.self, forKey: ._t)
         self._scale = try container.decode(GLFloat3.self, forKey: ._scale)
         self._pivot = try container.decodeIfPresent(GLFloat3.self, forKey: ._pivot)
     }
@@ -109,20 +105,24 @@ class Transform: Transformation, ObservableObject, Codable {
     }
     
     
-    func tilt(_ toT: Int) { 
+    func tilt(_ toT: CGFloat) { 
         self._t = toT 
         self.onChanged()
     }
-    func tiltBy(_ deltaT: Int) { 
+    func tiltBy(_ deltaT: CGFloat) { 
         if deltaT != 0 { self._t = MoGLMath.safeAngle(_t + deltaT) } 
         self.onChanged()    
     }
-    func rotate(_ toA: Int) { 
+    func rotate(_ toA: CGFloat) { 
         self._a = toA 
+        _rotation = GLQuat.fromAngleAxis(angle: CGFloat(toA), axis: .up)
         self.onChanged()
     }
     func rotateBy(_ deltaA: CGFloat) { 
-        if deltaA != 0 { self._a = MoGLMath.safeAngle(_a + Int(deltaA)) } 
+        if deltaA != 0 {
+            self._a = MoGLMath.safeAngle(_a + deltaA)
+            _rotation = GLQuat.fromAngleAxis(angle: CGFloat(_a), axis: .up)
+        } 
         self.onChanged()    
     }
     func rotateBy(_ deltaA: Int) { 
@@ -132,6 +132,7 @@ class Transform: Transformation, ObservableObject, Codable {
     // set/alter all transform members
     func set(_ other: Transform) {
         self._location = other._location
+        self._rotation = other._rotation
         self._a = other._a
         self._t = other._t
         self._scale = other._scale
@@ -148,15 +149,14 @@ class Transform: Transformation, ObservableObject, Codable {
     }
     
     
-    
     private enum CodingKeys : String, CodingKey {
-        case _location, _z, _a, _t, _scale, _pivot
+        case _location, _rotation, _a, _t, _scale, _pivot
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(location, forKey: ._location)
-        try container.encode(z, forKey: ._z)
+        try container.encode(rotation, forKey: ._rotation)
         try container.encode(a, forKey: ._a)
         try container.encode(t, forKey: ._t)
         try container.encode(scale, forKey: ._scale)

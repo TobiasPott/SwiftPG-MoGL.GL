@@ -48,60 +48,75 @@ class OnePointProjection: TransformerStage, Projection {
     func getWinding() -> GLWinding {
         let v0 = (toView[2] - toView[1]).normalized()
         let v1 = (toView[0] - toView[1]).normalized()
-
+        
         var cross = GLFloat3.cross(v1, v0)
+        var tempA = 0.0
         if let vt = viewTarget {
-            var angle = vt.transform.a
-//            if angle < 270 && angle > 90 { angle -= 180 }
-            // rework
-//            print("Angle: \(vt.transform.a) A': \(angle)")
-            let rotCrossXY = cross.xy.rotate(angle, .zero)
-            cross = .init(rotCrossXY.x, rotCrossXY.y, cross.z);
+            //            var angle = vt.transform.a
+            tempA = vt.transform.a
+            //            cross = vt.transform.rotation.rot(v: cross.normalized())
         }
-//        cross
+        //        cross
         // ToDo: check & validate the transform.forward (rotated values don't seem correct)
-        let fwd = (viewTarget?.transform.forward ?? .forward)
-        let dot = GLFloat3.dot(cross, fwd)
-//        let rad = AngleBetweenTwoVectors(vA: cross, vB: fwd) * (180.0 / .pi)
+        let fwd = GLFloat3.forward // (viewTarget?.transform.forward ?? .forward)
+        let dot = GLFloat3.dot(cross, fwd) 
+        let rad = radToDeg(a: atan2(cross.magnitude, GLFloat3.dot(cross, fwd)))
         // ToDo: include check for transformed vertices all below or all above camera position
         //    all 
         
-//        print("View: \(cross) -> \(dot)")
-        print("View: \(toView[0]) \(toView[1])")
+        print("View: \(cross) -> \(rad) :: \(tempA)")
+        //        print("View: \(toView[0]) \(toView[1])")
         // reverse comparison to enable correct culling
+        //        return rad >= 44.5 && rad <= 90 ? .ccw : .cw
         return dot < 1 ? .ccw : .cw
     }
-    func AngleBetweenTwoVectors(vA: GLFloat3, vB: GLFloat3) -> CGFloat {
-        var fCrossX:CGFloat, fCrossY:CGFloat, fCrossZ:CGFloat,
-            fCross:CGFloat, fDot:CGFloat;
-        fCrossX = vA.y * vB.z - vA.z * vB.y;
-        fCrossY = vA.z * vB.x - vA.x * vB.z;
-        fCrossZ = vA.x * vB.y - vA.y * vB.x;
-        fCross = sqrt(fCrossX * fCrossX + fCrossY * fCrossY + fCrossZ * fCrossZ);
-        fDot = vA.x * vB.x + vA.y * vB.y + vA.z + vB.z;
-        return atan2(fCross, fDot);
-    }
-    
+    //    func AngleBetweenTwoVectors(vA: GLFloat3, vB: GLFloat3) -> CGFloat {
+    //        var fCrossX:CGFloat, fCrossY:CGFloat, fCrossZ:CGFloat,
+    //            fCross:CGFloat, fDot:CGFloat;
+    //        fCrossX = vA.y * vB.z - vA.z * vB.y;
+    //        fCrossY = vA.z * vB.x - vA.x * vB.z;
+    //        fCrossZ = vA.x * vB.y - vA.y * vB.x;
+    //        fCross = sqrt(fCrossX * fCrossX + fCrossY * fCrossY + fCrossZ * fCrossZ);
+    //        fDot = vA.x * vB.x + vA.y * vB.y + vA.z + vB.z;
+    //        return atan2(fCross, fDot);
+    //    }
+    //    
     func projectToView(_ p0: GLFloat3, _ p1: GLFloat3, _ p2: GLFloat3, _ p3: GLFloat3) {
         if let vt = self.viewTarget {
             let viewTfs = vt.transform
             let viewLoc = viewTfs.location
             
-            var toView: [GLFloat3] = [p0, p1, p2, p3]
+            var toView: [GLFloat3] = [p0 - viewLoc, p1 - viewLoc, p2 - viewLoc, p3 - viewLoc]
+            //            var allSubZero = true
             for i in 0..<toView.count {
-                let vC = toView[i] - viewLoc
+                let vC = toView[i] // - viewLoc
                 var newCoord = vC
+                // ToDo: rework to exclude fov in ToView projection but in ToScreen (as it should be?!)
+                //        hopefully the normals are more understandable within normal 
+                // ToDo: redo toView/ToScreen to have view space align with x,y,z axes (right, front, up) 
+                //        (atm it is x,y,z (right, up, front)
+                // ToDo: may consider including spanning the 'near-far' clip range
+                
                 newCoord.x = (vC.x * cosine - vC.y * sine) / resolution
                 newCoord.y = (vC.y * cosine + vC.x * sine) / vt.fov
-                if vC.z > 0 {
-                    newCoord.z = (vC.z + (newCoord.y)) / resolution   
+                if vC.z >= 0 {
+                    //                    allSubZero = false
+                    //                    newCoord.z = (vC.z) / resolution
+                    newCoord.z = (vC.z + (newCoord.y)) / resolution
                 } else {
                     newCoord.z = (vC.z - (newCoord.y)) / resolution
+                    //                    newCoord.z = (vC.z) / resolution
                 }
+                //                newCoord.z = (vC.z + (newCoord.y)) / resolution
                 toView[i] = newCoord
             }
-            
-//            print("View: \(toView)")
+            //            
+            //            if allSubZero {
+            //                for i in 0..<toView.count {
+            //                    toView[i].z = toView[i].z - (toView[i].y / resolution)
+            //                }
+            //            }
+            //            print("View: \(toView)")
             
             self.toView.removeAll()
             self.toView.append(contentsOf: toView)
@@ -125,8 +140,8 @@ class OnePointProjection: TransformerStage, Projection {
                     toScreen[i].y = (toView[i].z / toScreen[i].y * resolution) + vt.h2
                 }
             }
-
-//            print("Screen: \(toScreen[0]), \(toScreen[1]), \(toScreen[2]), \(toScreen[3]))")
+            
+            //            print("Screen: \(toScreen[0]), \(toScreen[1]), \(toScreen[2]), \(toScreen[3]))")
             return clipped
         }
         // failed projection (indicates invalid/erratic data left in projection)

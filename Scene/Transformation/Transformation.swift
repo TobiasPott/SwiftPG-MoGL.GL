@@ -3,18 +3,17 @@ import SwiftUI
 protocol Transformation: Codable {
     
     // === Properties ===
-    var location: GLFloat3 { get } 
+    var location: GLFloat3 { get }
+    var rotation: GLQuat { get }
     var x: CGFloat { get }
     var y: CGFloat { get }
     var z: CGFloat { get }
-    var a: Int { get }
-    var t: Int { get }
     var scale: GLFloat3 { get }
     var pivot: GLFloat3 { get } 
     var useCustomPivot: Bool { get }
     
     // === Ctors ===
-    init(_location: GLFloat3, _a: Int, _t: Int, _scale: GLFloat3, _pivot: GLFloat3?)
+    init(_location: GLFloat3, _a: CGFloat, _t: CGFloat, _scale: GLFloat3, _pivot: GLFloat3?)
 }
 
 // ToDo: add function to add transform (transform transforms)
@@ -55,17 +54,18 @@ extension Transformation {
     
     func xformTranslate(_ point: CGPoint) -> CGPoint { return point + self.location.xy }
     func xformRotate(_ point: CGPoint) -> CGPoint {
-        if self.a != 0 { return point.rotate(self.a, self.pivot.xy) }
+//        if self._a != 0 { return point.rotate(self._a, self.pivot.xy) }
         return point
     }
     func xformScale(_ point: CGPoint) -> CGPoint {
-        if scale.x != 1.0 || scale.y != 1.0 { return point.scale(self.scale.xy, self.pivot.xy) }
+//        if scale.x != 1.0 || scale.y != 1.0 { return point.scale(self.scale.xy, self.pivot.xy) }
         return point
     }
     func xform(_ point: CGPoint) -> CGPoint {
-        let scaled = point.scale(self.scale.xy, self.pivot.xy)
-        let rotated = scaled.rotate(self.a, self.pivot.xy)
-        return rotated + self.location.xy
+//        let scaled = point.scale(self.scale.xy, self.pivot.xy)
+//        let rotated = scaled.rotate(self._a, self.pivot.xy)
+//        return rotated + self.location.xy
+        return point
     }
     
     
