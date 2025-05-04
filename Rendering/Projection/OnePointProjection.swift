@@ -52,22 +52,22 @@ class OnePointProjection: TransformerStage, Projection {
         var cross = GLFloat3.cross(v1, v0)
         if let vt = viewTarget {
             var angle = vt.transform.a
-            if angle < 270 && angle > 90 { angle -= 180 }
+//            if angle < 270 && angle > 90 { angle -= 180 }
             // rework
-            print("Angle: \(vt.transform.a) A': \(angle)")
+//            print("Angle: \(vt.transform.a) A': \(angle)")
             let rotCrossXY = cross.xy.rotate(angle, .zero)
             cross = .init(rotCrossXY.x, rotCrossXY.y, cross.z);
         }
 //        cross
         // ToDo: check & validate the transform.forward (rotated values don't seem correct)
-        let fwd = GLFloat3.forward // (viewTarget?.transform.forward ?? .forward)
+        let fwd = (viewTarget?.transform.forward ?? .forward)
         let dot = GLFloat3.dot(cross, fwd)
 //        let rad = AngleBetweenTwoVectors(vA: cross, vB: fwd) * (180.0 / .pi)
         // ToDo: include check for transformed vertices all below or all above camera position
         //    all 
         
 //        print("View: \(cross) -> \(dot)")
-//        print("View: \(toView)\n\(cross) -> \(dot)")
+        print("View: \(toView[0]) \(toView[1])")
         // reverse comparison to enable correct culling
         return dot < 1 ? .ccw : .cw
     }

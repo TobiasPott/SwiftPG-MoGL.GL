@@ -11,9 +11,9 @@ class Transform: Transformation, ObservableObject, Codable {
     
     // === Members === 
     @Published private var _location: GLFloat3 = .init(0, -100, -50.0) 
-    //    @Published private var _z: CGFloat = -50.0
     @Published private var _a: Int = .zero
     @Published private var _t: Int = .zero
+    @Published private var _rotation: GLQuat = .init(angle: 0, axis: .up)
     @Published private var _scale: GLFloat3 = .one
     @Published private var _pivot: GLFloat3? = nil // scale/rotate pivot 
     

@@ -46,6 +46,7 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic, CustomStringConvertible 
     
     // === Ctors ===
     init() { }
+    init(_ other: GLFloat3) { self.x = other.x; self.y = other.y; self.z = other.z }
     init(_ x: any BinaryFloatingPoint, _ y: any BinaryFloatingPoint, _ z: any BinaryFloatingPoint) {
         self.x = CGFloat(x); self.y = CGFloat(y); self.z = CGFloat(z)
     }
@@ -75,6 +76,16 @@ struct GLFloat3: Codable, Animatable, VectorArithmetic, CustomStringConvertible 
             self.y /= length
             self.z /= length
         }
+    }
+    mutating func negate() {
+        x = -x; y = -y; z = -z
+    }
+    
+    func dot(_ v: GLFloat3) -> CGFloat {
+        return GLFloat3.dot(self, v)
+    }
+    func cross(_ v: GLFloat3) -> GLFloat3 {
+        return GLFloat3.cross(self, v)
     }
     
     
