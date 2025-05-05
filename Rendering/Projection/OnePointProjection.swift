@@ -46,25 +46,33 @@ class OnePointProjection: TransformerStage, Projection {
         return (location - toView[index]).magnitude        
     }
     func getWinding() -> GLWinding {
-        let v0 = (toView[2] - toView[1]).normalized()
-        let v1 = (toView[0] - toView[1]).normalized()
+        let v0 = (toView[2] - toView[1])
+        let v1 = (toView[0] - toView[1])
         
         var cross = GLFloat3.cross(v1, v0)
         var tempA = 0.0
         if let vt = viewTarget {
             //            var angle = vt.transform.a
             tempA = vt.transform.a
-            //            cross = vt.transform.rotation.rot(v: cross.normalized())
+            cross = vt.transform.rotation.rot(v: cross).normalized()
+            
+            
+            let qAngle = GLQuat.fromAngleAxis(angle: 0, axis: cross)
+            tempA = qAngle.getAngle(q: vt.transform.rotation)
         }
         //        cross
         // ToDo: check & validate the transform.forward (rotated values don't seem correct)
-        let fwd = GLFloat3.forward // (viewTarget?.transform.forward ?? .forward)
+        let fwd: GLFloat3 = .forward // (viewTarget?.transform.forward ?? .forward)
         let dot = GLFloat3.dot(cross, fwd) 
-        let rad = radToDeg(a: atan2(cross.magnitude, GLFloat3.dot(cross, fwd)))
+        let rad = radToDeg(atan2(cross.magnitude, GLFloat3.dot(cross, fwd)))
         // ToDo: include check for transformed vertices all below or all above camera position
-        //    all 
-        
-        print("View: \(cross) -> \(rad) :: \(tempA)")
+        print("Cross: \(cross) -> \(rad) :: \(tempA)")
+    
+        // ToDo: PRIO: Replace GLQuat, GLFloat3 and GLFloat2 with SwiftGeom types
+        let fwdNew: Vector3 = .init(0, 1, 0)
+        let qAngle = Quaternion(angle: 90, axis: .init(1, 0, 0))
+        let fwdRotated = qAngle.rot(fwdNew)
+        print("Rot: \(fwdNew) \(fwdRotated)")
         //        print("View: \(toView[0]) \(toView[1])")
         // reverse comparison to enable correct culling
         //        return rad >= 44.5 && rad <= 90 ? .ccw : .cw
@@ -97,18 +105,22 @@ class OnePointProjection: TransformerStage, Projection {
                 //        (atm it is x,y,z (right, up, front)
                 // ToDo: may consider including spanning the 'near-far' clip range
                 
-                newCoord.x = (vC.x * cosine - vC.y * sine) / resolution
-                newCoord.y = (vC.y * cosine + vC.x * sine) / vt.fov
-                if vC.z >= 0 {
-                    //                    allSubZero = false
-                    //                    newCoord.z = (vC.z) / resolution
-                    newCoord.z = (vC.z + (newCoord.y)) / resolution
-                } else {
-                    newCoord.z = (vC.z - (newCoord.y)) / resolution
-                    //                    newCoord.z = (vC.z) / resolution
-                }
-                //                newCoord.z = (vC.z + (newCoord.y)) / resolution
-                toView[i] = newCoord
+                //                newCoord.x = (vC.x * cosine - vC.y * sine) / resolution
+                //                newCoord.y = (vC.y * cosine + vC.x * sine) / vt.fov
+                //                if vC.z >= 0 {
+                //                    newCoord.z = (vC.z + (newCoord.y)) / resolution
+                //                } else {
+                //                    newCoord.z = (vC.z - (newCoord.y)) / resolution
+                //                }
+                newCoord.x = (vC.x * cosine - vC.y * sine)
+                newCoord.y = (vC.y * cosine + vC.x * sine)
+                //                if vC.z >= 0 {
+                newCoord.z = (vC.z)
+                //                } else {
+                //                    newCoord.z = (vC.z - (newCoord.y))
+                //                }
+                
+                toView[i] = newCoord / resolution
             }
             //            
             //            if allSubZero {
@@ -133,11 +145,11 @@ class OnePointProjection: TransformerStage, Projection {
             for i in 0..<toView.count {
                 toScreen[i] = toView[i].xy
                 
-                if toScreen[i].y == 0 { toScreen[i].y = -1; clipped = true } // clip y if zero
+                if toScreen[i].y <= 0 { toScreen[i].y = -1; clipped = true } // clip y if zero
                 if toScreen[i].y != 0 { 
                     // ToDo: add fov to projectToView (I should have correct view space normals then?!
-                    toScreen[i].x = (toView[i].x / toScreen[i].y * resolution) + vt.w2 
-                    toScreen[i].y = (toView[i].z / toScreen[i].y * resolution) + vt.h2
+                    toScreen[i].x = (toView[i].x / (toScreen[i].y) * resolution) + vt.w2 
+                    toScreen[i].y = (toView[i].z / (toScreen[i].y) * resolution) + vt.h2
                 }
             }
             

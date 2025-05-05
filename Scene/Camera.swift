@@ -15,7 +15,7 @@ class Camera: ObservableObject, ViewTarget {
     @Published private var _projection: Projection
 
     private var isoProj: IsoProjection = IsoProjection(1)
-    private var onePointProj: OnePointProjection = OnePointProjection(64)
+    private var onePointProj: OnePointProjection = OnePointProjection(128)
     private var planarProj: PlanarProjection = PlanarProjection(1)
     
     

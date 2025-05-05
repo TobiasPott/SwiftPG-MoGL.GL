@@ -8,9 +8,6 @@
 
 import SwiftUI
 
-//typealias Vector3 = GLFloat3
-//typealias Float32 = CGFloat 
-
 struct GLQuat: Codable {
     var x: CGFloat, y: CGFloat, z: CGFloat = 0, w: CGFloat = 0
     
@@ -24,7 +21,6 @@ struct GLQuat: Codable {
         self.x = x; self.y = y; self.z = z; self.w = w
     }
     init(other: GLQuat) {
-        //        set(other.x, other.y, other.z, other.w)
         x = other.x; y = other.y; z = other.z; w = other.w
     }
     init(vector: GLFloat3, w _w: CGFloat) {
@@ -54,6 +50,15 @@ extension GLQuat {
         z = newZ
         w = newW
     }
+//      C++ Code  
+//    Vector vn = axis.Normalized();
+//    
+//    angle *=  0.0174532925f; // To radians!
+//    angle *= 0.5f;    
+//    float sinAngle = sin(angle);
+//    
+//    return Quaternion(cos(angle), vn.x * sinAngle, vn.y * sinAngle, vn.z * sinAngle);
+    
     static func fromAngleAxis(angle: CGFloat, axis: GLFloat3) -> GLQuat {
         var x = axis.x;
         var y = axis.y;
@@ -65,7 +70,7 @@ extension GLQuat {
         y = y * length;
         z = z * length;
         
-        let half = degToRad(a: angle * 0.5);
+        let half = degToRad(angle) * 0.5;
         
         let w = cos(half);
         
@@ -76,7 +81,7 @@ extension GLQuat {
         z = z * sin_theta_over_two;
         
         let result: GLQuat = .init(x: x, y: y, z: z, w: w)
-        print("AngleAxis: \(result)")
+//        print("AngleAxis: \(result)")
         return result
     }
     
@@ -201,7 +206,7 @@ extension GLQuat {
         
     }
     
-    mutating func rotate(v: inout GLFloat3) {
+    func rotate(v: inout GLFloat3) {
         
         var myInverse = GLQuat()
         
@@ -240,11 +245,30 @@ extension GLQuat {
         return rot(v: GLFloat3(v.x, v.y, 0)).xy
     }
     func rot(v: GLFloat3) -> GLFloat3 {
+// https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
+//        var qv = GLFloat3(x, y, z)
+//        var crossDot = (qv.cross(v)) * w + qv * (qv.dot(v))
+//        
+//        return (v * (w*w - 0.5) + crossDot) * 2.0
         
-        var qv = GLFloat3(x, y, z)
-        var crossDot = (qv.cross(v)) * w + qv * (qv.dot(v))
+        var u = GLFloat3(x, y, z)
+        var s = w
         
-        return (v * (w*w - 0.5) + crossDot) * 2.0
+        let a = u * 2.0 * u.dot(v)
+        let b = v * (s*s - u.dot(v))
+        let c = u.cross(v) * 2.0 * s
+        return a + b + c
+        /*
+        // Extract the vector part of the quaternion
+        Vector3 u(q.x, q.y, q.z);
+        
+        // Extract the scalar part of the quaternion
+        float s = q.w;
+        
+        // Do the math
+        vprime = 2.0f * dot(u, v) * u
+        + (s*s - dot(u, u)) * v
+        + 2.0f * s * cross(u, v);*/
     }
     
     func invRot(v: GLFloat2) -> GLFloat2 {
