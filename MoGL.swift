@@ -72,7 +72,7 @@ class MoGL {
         let tfs: CGAffineTransform = .identity.translatedBy(x: x, y: y)
         buffer.back = buffer.back.transform(tfs).path(in: viewport)
     }
-    func glScale(_ scale: CGPoint) {
+    func glScale(_ scale: Vector2) {
         buffer.back = buffer.back.scale(x: scale.x, y: scale.y, anchor: .center).path(in: viewport)
     }
     func glScale2f(_ x: CGFloat, _ y: CGFloat) {
@@ -84,31 +84,18 @@ class MoGL {
     
     // =========
     // base line and move functions
-    func glMove2f(_ pt: CGPoint) { glVertex2f(pt, false) }
-    func glVertex2f(_ pt: CGPoint, _ connect: Bool = true) {    
-        if connect { buffer.back.addLine(to: pt) } 
-        else { buffer.back.move(to: pt) }
+    func glMove2f(_ pt: Vector2) { glVertex2f(pt, false) }
+    func glVertex2f(_ pt: Vector2, _ connect: Bool = true) {    
+        if connect { buffer.back.addLine(to: pt.cgPoint) } 
+        else { buffer.back.move(to: pt.cgPoint) }
     }
-    func glVertexArray2f(_ pts: [CGPoint], _ connect: Bool = true) {
+    func glVertexArray2f(_ pts: [Vector2], _ connect: Bool = true) {
         if pts.isEmpty { return }
         // handle connect with first entry in array
-        if connect { buffer.back.addLine(to: pts[0]) } 
-        else { buffer.back.move(to: pts[0]) }
+        if connect { buffer.back.addLine(to: pts[0].cgPoint) } 
+        else { buffer.back.move(to: pts[0].cgPoint) }
         // add all others as lines
-        for i in 1..<pts.count { buffer.back.addLine(to: pts[i]) }
-    }
-    func glMove2i(_ pt: CGPoint) { glVertex2i(pt, false) }
-    func glVertex2i(_ pt: CGPoint, _ connect: Bool = true) { 
-        if connect { buffer.back.addLine2i(to: pt) } 
-        else { buffer.back.move2i(to: pt) }
-    }
-    func glVertexArray2i(_ pts: [CGPoint], _ connect: Bool = true) {
-        if pts.isEmpty { return }
-        // handle connect with first entry in array
-        if connect { buffer.back.addLine2i(to: pts[0]) } 
-        else { buffer.back.move2i(to: pts[0]) }
-        // add all others as lines
-        for i in 1..<pts.count { buffer.back.addLine2i(to: pts[i]) }
+        for i in 1..<pts.count { buffer.back.addLine(to: pts[i].cgPoint) }
     }
     
 }

@@ -7,8 +7,8 @@ class GLPolyShape: GLPolygon2D {
     var transform: Transformation? = nil
     
     // === Ctors ===
-    convenience init(_ points: [CGPoint], _ options: Flags) { self.init(points, nil, options) }
-    init(_ points: [CGPoint], _ transform: Transformation? = nil, _ options: Flags) {
+    convenience init(_ points: [Vector2], _ options: Flags) { self.init(points, nil, options) }
+    init(_ points: [Vector2], _ transform: Transformation? = nil, _ options: Flags) {
         super.init()
         self.append(contentsOf: points)
         self.transform = transform

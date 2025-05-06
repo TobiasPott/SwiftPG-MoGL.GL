@@ -21,10 +21,10 @@ typealias Line = Duplet<Int>
 typealias Triangle = Triplet<Int>
 typealias Quad = Quadlet<Int>
 
-typealias Point3f = GLFloat3
-typealias Line3f = Duplet<GLFloat3>
-typealias Triangle3f = Triplet<GLFloat3>
-typealias Quad3f = Quadlet<GLFloat3>
+typealias Point3f = Vector3
+typealias Line3f = Duplet<Vector3>
+typealias Triangle3f = Triplet<Vector3>
+typealias Quad3f = Quadlet<Vector3>
 
 
 extension Point {

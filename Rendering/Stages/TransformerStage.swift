@@ -2,9 +2,9 @@ import SwiftUI
 
 class TransformerStage {
     // === Members ===
-    internal var toView: [GLFloat3] = [.zero, .zero, .zero, .zero]
+    internal var toView: [Vector3] = [.zero, .zero, .zero, .zero]
     // ToDo: continue implementing use of toScreen stage buffer (technically not necessary but makes intent clear
-    internal var toScreen: [GLFloat2] = [.zero, .zero, .zero, .zero]
+    internal var toScreen: [Vector2] = [.zero, .zero, .zero, .zero]
     
     internal var resolution: CGFloat = 1.0// cannot be zero (causes division by zero)
     internal var sine: CGFloat = 0.0
@@ -14,12 +14,12 @@ class TransformerStage {
     
     // === Functions ===
     /** Gets the 3D view space coordinates result from the last transformation */
-    func getToView(_ index: Int) -> GLFloat3 {
+    func getToView(_ index: Int) -> Vector3 {
         if index >= 0 && index < 4 { return toView[index] } 
         else { return .zero }
     }
     /** Gets the 2D screen space coordinates result from the last transformation */
-    func getToScreen(_ index: Int) -> CGPoint {
+    func getToScreen(_ index: Int) -> Vector2 {
         if index >= 0 && index < 4 { return toScreen[index] } 
         else { return .zero }
     }

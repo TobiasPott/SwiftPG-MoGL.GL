@@ -37,68 +37,74 @@ class OnePointProjection: TransformerStage, Projection {
     }
     func clipFar() -> Bool { return false }
     
-    func distanceTo3D(_ location: GLFloat3) -> CGFloat {
+    func distanceTo3D(_ location: Vector3) -> CGFloat {
         let locViewMiddle = (toView[0] + toView[1] + toView[2] + toView[3]) / 4.0
-        return (location - locViewMiddle).magnitude
+        return (location - locViewMiddle).magnitude()
         // ToDo: add sign for location in front of view (always forward plane check) (is it dot product?)
     }
-    func distanceTo3D(_ index: Int, _ location: GLFloat3) -> CGFloat {
-        return (location - toView[index]).magnitude        
+    func distanceTo3D(_ index: Int, _ location: Vector3) -> CGFloat {
+        return (location - toView[index]).magnitude()        
     }
     func getWinding() -> GLWinding {
-        let v0 = (toView[2] - toView[1])
-        let v1 = (toView[0] - toView[1])
-        
-        var cross = GLFloat3.cross(v1, v0)
+        //        print("\(toView)")
+        let v0 = (toView[3] - toView[0]).normalized()
+        let v1 = (toView[1] - toView[0]).normalized()
+        // ToDo: normal seems incorrect for top face?!
+        //        print("\(v0) \(v1)")        
+        var cross = Vector3.cross(v1, v0)
+        //        print("\(cross)")
         var tempA = 0.0
         if let vt = viewTarget {
             //            var angle = vt.transform.a
             tempA = vt.transform.a
-            cross = vt.transform.rotation.rot(v: cross).normalized()
-            
-            
-            let qAngle = GLQuat.fromAngleAxis(angle: 0, axis: cross)
-            tempA = qAngle.getAngle(q: vt.transform.rotation)
+            var qA = Quaternion(angle: tempA, axis: .yAxis)
+            cross = qA.rot(cross)
+            //            cross = vt.transform.rotation.rot(cross)
+            //            let qAngle = Quaternion(angle: 0, axis: cross)
+            //            tempA = radToDeg(qAngle.getAngle(vt.transform.rotation))
         }
         //        cross
         // ToDo: check & validate the transform.forward (rotated values don't seem correct)
-        let fwd: GLFloat3 = .forward // (viewTarget?.transform.forward ?? .forward)
-        let dot = GLFloat3.dot(cross, fwd) 
-        let rad = radToDeg(atan2(cross.magnitude, GLFloat3.dot(cross, fwd)))
+        let fwd: Vector3 = (viewTarget?.transform.forward ?? .zAxis)
+        let dot = Vector3.dot(cross, fwd)
+        var rad = radToDeg(atan2(cross.magnitude(), Vector3.dot(cross, fwd)))
+        
+        //        let qAngle2 = Quaternion(angle: 0, axis: cross)
+        //        rad = qAngle2.getAngle(viewTarget?.transform.rotation ?? .init())
         // ToDo: include check for transformed vertices all below or all above camera position
-        print("Cross: \(cross) -> \(rad) :: \(tempA)")
-    
+        //        print("Cross: \(toView[1]) - \(toView[0]) ==> \(v0) x \(v1) == \(cross) -> \(rad) :: \(tempA)")
+        print("Cross: \(cross) \(fwd) -> \(rad) :: \(dot)")
+        
         // ToDo: PRIO: Replace GLQuat, GLFloat3 and GLFloat2 with SwiftGeom types
-        let fwdNew: Vector3 = .init(0, 1, 0)
-        let qAngle = Quaternion(angle: 90, axis: .init(1, 0, 0))
-        let fwdRotated = qAngle.rot(fwdNew)
-        print("Rot: \(fwdNew) \(fwdRotated)")
+        //        let fwdNew: Vector3 = .init(0, 1, 0)
+        //        let qAngle = Quaternion(angle: 90, axis: .init(0, 0, 1))
+        //        let fwdRotated = qAngle.rot(cross)
+        //        print("Rot: \(fwdRotated)")
+        //                print("Rot: \(fwdNew) \(fwdRotated)")
         //        print("View: \(toView[0]) \(toView[1])")
         // reverse comparison to enable correct culling
         //        return rad >= 44.5 && rad <= 90 ? .ccw : .cw
-        return dot < 1 ? .ccw : .cw
+        //        return tempA < 90 || tempA > 270 ? .ccw : .cw
+        return dot <= 1 ? .ccw : .cw
     }
-    //    func AngleBetweenTwoVectors(vA: GLFloat3, vB: GLFloat3) -> CGFloat {
-    //        var fCrossX:CGFloat, fCrossY:CGFloat, fCrossZ:CGFloat,
-    //            fCross:CGFloat, fDot:CGFloat;
-    //        fCrossX = vA.y * vB.z - vA.z * vB.y;
-    //        fCrossY = vA.z * vB.x - vA.x * vB.z;
-    //        fCrossZ = vA.x * vB.y - vA.y * vB.x;
-    //        fCross = sqrt(fCrossX * fCrossX + fCrossY * fCrossY + fCrossZ * fCrossZ);
-    //        fDot = vA.x * vB.x + vA.y * vB.y + vA.z + vB.z;
-    //        return atan2(fCross, fDot);
-    //    }
-    //    
-    func projectToView(_ p0: GLFloat3, _ p1: GLFloat3, _ p2: GLFloat3, _ p3: GLFloat3) {
+    
+    func projectToView(_ p0: Vector3, _ p1: Vector3, _ p2: Vector3, _ p3: Vector3) {
         if let vt = self.viewTarget {
             let viewTfs = vt.transform
             let viewLoc = viewTfs.location
+            let fov = vt.fov
             
-            var toView: [GLFloat3] = [p0 - viewLoc, p1 - viewLoc, p2 - viewLoc, p3 - viewLoc]
-            //            var allSubZero = true
+            var toView: [Vector3] = [p0 - viewLoc, p1 - viewLoc, p2 - viewLoc, p3 - viewLoc]
+            //            let v0 = Vector3(-0.125, 0.90625,0.125) - Vector3(-0.125, 0.65625,0.125)
+            //            let v1 = Vector3(0.125, 0.90625,0.125) - Vector3.init(-0.125, 0.65625,0.125)
+            //            let tmpCross = Vector3.cross(v1, v0)
+            //            print("\(v0.normalized()) x \(v1.normalized()) = \(tmpCross)")
             for i in 0..<toView.count {
-                let vC = toView[i] // - viewLoc
+                let vC = toView[i]
+                //                let vC = vt.transform.rotation.rot(toView[i])
                 var newCoord = vC
+                newCoord = vt.transform.rotation.rot(newCoord)
+//                swap(&newCoord.y, &newCoord.z)
                 // ToDo: rework to exclude fov in ToView projection but in ToScreen (as it should be?!)
                 //        hopefully the normals are more understandable within normal 
                 // ToDo: redo toView/ToScreen to have view space align with x,y,z axes (right, front, up) 
@@ -112,15 +118,15 @@ class OnePointProjection: TransformerStage, Projection {
                 //                } else {
                 //                    newCoord.z = (vC.z - (newCoord.y)) / resolution
                 //                }
-                newCoord.x = (vC.x * cosine - vC.y * sine)
-                newCoord.y = (vC.y * cosine + vC.x * sine)
-                //                if vC.z >= 0 {
-                newCoord.z = (vC.z)
-                //                } else {
-                //                    newCoord.z = (vC.z - (newCoord.y))
-                //                }
-                
-                toView[i] = newCoord / resolution
+                //                newCoord.x = (vC.x * cosine - vC.y * sine)
+                //                newCoord.y = (vC.y * cosine + vC.x * sine) 
+                //                                if vC.z >= 0 {
+                //                newCoord.z = (vC.z) + newCoord.y / 10
+                //                                } else {
+                //                                    newCoord.z = (-vC.z)
+                //                                }
+                //                swap(&newCoord.y, &newCoord.z)
+                toView[i] = newCoord // / resolution
             }
             //            
             //            if allSubZero {
@@ -135,7 +141,7 @@ class OnePointProjection: TransformerStage, Projection {
         }
         
     }
-    func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge) { }
+    func projectToView(_ p1: Vector2, _ p2: Vector2, ze1: ZEdge, ze2: ZEdge) { }
     
     func projectToScreen() -> Bool {
         if let vt = self.viewTarget {
@@ -143,7 +149,7 @@ class OnePointProjection: TransformerStage, Projection {
             let fov = vt.fov 
             
             for i in 0..<toView.count {
-                toScreen[i] = toView[i].xy
+                toScreen[i] = .init(toView[i].x, toView[i].y)
                 
                 if toScreen[i].y <= 0 { toScreen[i].y = -1; clipped = true } // clip y if zero
                 if toScreen[i].y != 0 { 

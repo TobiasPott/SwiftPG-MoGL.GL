@@ -2,18 +2,18 @@ import SwiftUI
 
 
 class GLPolygon2D {
-    private var _vertices: [GLFloat2] = []
+    private var _vertices: [Vector2] = []
     private var _fragments: [CGFloat] = []
     
     var isEmpty: Bool { get { return _vertices.isEmpty } }
-    var vertices: [GLFloat2] { get { return _vertices } }
+    var vertices: [Vector2] { get { return _vertices } }
     var fragments: [CGFloat] { get { return _fragments } }
     
     var startIndex: Int { 0 }
     var endIndex: Int  { _vertices.count }
     var count: Int  { _vertices.count }
     
-    subscript(index: Int) -> GLFloat2 {
+    subscript(index: Int) -> Vector2 {
         get { _vertices[index] }
         set { _vertices[index] = newValue } 
     }
@@ -23,7 +23,7 @@ class GLPolygon2D {
     }
     
     
-    func set(at: Int, _ quadlet: Quadlet<GLFloat2>) { _vertices.set(at: at, quadlet) }
+    func set(at: Int, _ quadlet: Quadlet<Vector2>) { _vertices.set(at: at, quadlet) }
     func set(at: Int, _ quadlet: Quadlet<CGFloat>) { _fragments.set(at: at, quadlet) }
     
     func reserve(_ count: Int) { 
@@ -36,9 +36,9 @@ class GLPolygon2D {
             }  
         } 
     }
-    func append(_ vertex: GLFloat2) { _vertices.append(vertex) }
+    func append(_ vertex: Vector2) { _vertices.append(vertex) }
     //    
-    func append(contentsOf: any Sequence<GLFloat2>) { 
+    func append(contentsOf: any Sequence<Vector2>) { 
         let count = _vertices.count
         _vertices.append(contentsOf: contentsOf) 
         _fragments.append(contentsOf: Array.init(repeating: .zero, count: _vertices.count - count))

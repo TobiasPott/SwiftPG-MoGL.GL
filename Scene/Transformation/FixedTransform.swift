@@ -2,27 +2,27 @@ import SwiftUI
 
 struct FixedTransform: Transformation, Codable {
     // === Members ===
-    let _location: GLFloat3 
-    let _rotation: GLQuat
-    let _scale: GLFloat3
-    let _pivot: GLFloat3? 
+    let _location: Vector3 
+    let _rotation: Quaternion
+    let _scale: Vector3
+    let _pivot: Vector3? 
     
     // === Properties === 
-    var location: GLFloat3 { get { return _location } } 
-    var rotation: GLQuat { get { return _rotation } } 
+    var location: Vector3 { get { return _location } } 
+    var rotation: Quaternion { get { return _rotation } } 
     var x: CGFloat { get { return (_location.x) } }
     var y: CGFloat { get { return (_location.y) } }
     var z: CGFloat { get { return (_location.z) } }
-    var scale: GLFloat3 { get { return _scale } }
-    var pivot: GLFloat3 { 
+    var scale: Vector3 { get { return _scale } }
+    var pivot: Vector3 { 
         get { return _pivot ?? .init(location.x, location.y, z) } 
     }
     var useCustomPivot: Bool { return _pivot != nil }
     
     // === Ctors ===
-    init(_location: GLFloat3, _a: CGFloat, _t: CGFloat, _scale: GLFloat3, _pivot: GLFloat3?) {
+    init(_location: Vector3, _a: TFloat, _t: TFloat, _scale: Vector3, _pivot: Vector3?) {
         self._location = _location;
-        self._rotation = GLQuat.fromAngleAxis(angle: CGFloat(_a), axis: .up)
+        self._rotation = Quaternion(angle: _a, axis: .yAxis)
         self._scale = _scale; self._pivot = _pivot
     }
     

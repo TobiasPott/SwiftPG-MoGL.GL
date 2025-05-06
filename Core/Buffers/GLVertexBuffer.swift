@@ -2,13 +2,13 @@
 
 class GLVertexBuffer {
     // === Members ===
-    var vertices: [GLFloat3] = []
-    var uvs0: BufferChannel<GLFloat2> = BufferChannel(fallback: .zero, initWith: nil)
-    var normals: BufferChannel<GLFloat3> = BufferChannel(fallback: .up, initWith: nil)
+    var vertices: [Vector3] = []
+    var uvs0: BufferChannel<Vector2> = BufferChannel(fallback: .zero, initWith: nil)
+    var normals: BufferChannel<Vector3> = BufferChannel(fallback: .yAxis, initWith: nil)
     var colors: BufferChannel<Int> = BufferChannel(fallback: .zero, initWith: nil)
     
     // === Functions ===
-    subscript(vIdx: Int) -> GLFloat3 {
+    subscript(vIdx: Int) -> Vector3 {
         get { vertices[vIdx] }
         set { vertices[vIdx] = newValue }
     }

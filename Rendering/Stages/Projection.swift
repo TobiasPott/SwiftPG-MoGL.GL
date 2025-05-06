@@ -6,5 +6,5 @@ protocol Projection: Transformer, Culling {
     //    // === Properties ===
     
     //    // === Functions ===
-    func projectToView(_ p1: CGPoint, _ p2: CGPoint, ze1: ZEdge, ze2: ZEdge)    
+    func projectToView(_ p1: Vector2, _ p2: Vector2, ze1: ZEdge, ze2: ZEdge)    
 }

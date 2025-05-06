@@ -11,5 +11,5 @@ extension ViewTarget {
     var aspect: CGFloat { get { return viewport.width / viewport.height } }
     var w2: CGFloat { get { return (viewport.width / 2) } }
     var h2: CGFloat { get { return (viewport.height / 2) } }
-    var screenCenter: CGPoint { get { return (viewport.size / 2).cgPoint } }
+    var screenCenter: Vector2 { get { return (viewport.size / 2).v2 } }
 }
